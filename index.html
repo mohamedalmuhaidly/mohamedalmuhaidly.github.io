@@ -1,0 +1,2089 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>جداول السكن</title>
+<meta name="theme-color" content="#0c6b63">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="السكن">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Housing board: sage-grey ground and a deep teal brand. Green means a free bed or someone entering; red means a taken bed or someone leaving.
+     Layout: phone-first column. Housing switch on top, rooms grid in the middle, two thumb-sized buttons fixed at the bottom. */
+  --bg:#edf1ee; --surface:#ffffff; --ink:#16222a; --muted:#56656c; --line:#d2dad5; --accent:#0c6b63;
+  --h-w:#0c6b63; --h-a:#3b4c9b;
+  --in:#1d8549; --in-soft:#dcf1e3; --out:#c0412b; --out-soft:#f9e1db; --warn:#9a6300; --warn-soft:#f6ead0; --idle:#86939a; --idle-soft:#e6eaeb;
+  --shadow:0 1px 2px rgba(20,40,40,.06),0 6px 18px rgba(20,40,40,.07);
+  --font-display:"Readex Pro","IBM Plex Sans Arabic",system-ui,"Segoe UI",Tahoma,sans-serif;
+  --font-body:"IBM Plex Sans Arabic",system-ui,"Segoe UI",Tahoma,sans-serif;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1517;--surface:#162125;--ink:#e4ecea;--muted:#a3b4b6;--line:#2b3b40;--accent:#47b5a7;--h-w:#47b5a7;--h-a:#97a5f4;
+  --in:#4fc686;--in-soft:#15342a;--out:#f2826b;--out-soft:#3a201b;--warn:#e5b04f;--warn-soft:#352b15;--idle:#76848a;--idle-soft:#222d31;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 18px rgba(0,0,0,.3);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1517;--surface:#162125;--ink:#e4ecea;--muted:#a3b4b6;--line:#2b3b40;--accent:#47b5a7;--h-w:#47b5a7;--h-a:#97a5f4;
+  --in:#4fc686;--in-soft:#15342a;--out:#f2826b;--out-soft:#3a201b;--warn:#e5b04f;--warn-soft:#352b15;--idle:#76848a;--idle-soft:#222d31;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 18px rgba(0,0,0,.3);color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.ic{width:22px;height:22px;flex:none}
+.num{font-family:var(--font-display);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.emoji{font-family:var(--emoji);line-height:1}
+.muted{color:var(--muted)}
+[hidden]{display:none!important}
+
+/* ---------- top ---------- */
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);padding-top:12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .logo{width:40px;height:40px;border-radius:12px;background:var(--accent);color:#fff;display:grid;place-items:center}
+.brand h1{font-family:var(--font-display);font-size:20px;margin:0;line-height:1.2;text-wrap:balance}
+.brand .sub{margin:0;font-size:13px;color:var(--muted)}
+.brand .grow{flex:1;min-width:0}
+.icon-btn{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.hswitch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.htab{display:flex;align-items:center;gap:8px;min-height:58px;padding:8px 12px;border-radius:14px;border:2px solid var(--line);background:var(--surface);text-align:start}
+.htab .hname{font-weight:700;font-size:16px;flex:1;line-height:1.25}
+.htab .hico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--hc) 14%,transparent);color:var(--hc)}
+.htab .hfree{display:flex;align-items:center;gap:4px;font-weight:700;color:var(--in);font-size:15px}
+.htab .hfree .ic{width:18px;height:18px}
+.htab.on{border-color:var(--hc);background:color-mix(in srgb,var(--hc) 9%,var(--surface));box-shadow:inset 0 -4px 0 var(--hc)}
+.stats{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none}
+.stat{flex:1;min-width:84px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 10px;display:flex;flex-direction:column}
+.stat b{font-family:var(--font-display);font-size:22px;line-height:1.2;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.stat.free b{color:var(--in)}
+.stat.warn{background:var(--warn-soft);border-color:transparent}
+.stat.warn b{color:var(--warn)}
+.tools{display:flex;gap:8px;margin-top:10px}
+.search{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 12px;min-height:46px}
+.search input{border:0;outline:0;background:transparent;flex:1;min-width:0;width:100%;font-size:16px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:0 12px;min-height:46px;font-weight:600;font-size:14px;white-space:nowrap}
+.chip .ic{width:18px;height:18px}
+.chip.on{background:var(--in-soft);border-color:var(--in);color:var(--in)}
+.banner{margin-top:10px;border-radius:12px;padding:10px 12px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
+.banner.warn{background:var(--warn-soft);color:var(--ink)}
+.banner.info{background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.banner .ic{margin-top:2px}
+
+/* ---------- rooms grid ---------- */
+main{padding-top:14px;padding-bottom:120px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px}
+@media (min-width:700px){.grid{grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:10px}}
+.room{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px 8px;min-height:96px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);box-shadow:var(--shadow)}
+.room .rn{font-family:var(--font-display);font-weight:700;font-size:24px;line-height:1;font-variant-numeric:tabular-nums}
+.room .flags{position:absolute;top:5px;inset-inline-start:6px;font-size:13px;display:flex;gap:1px}
+.room .dots{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:70px}
+.d{width:11px;height:11px;border-radius:50%;display:block}
+.d.on{background:var(--out)}
+.d.free{background:var(--in-soft);box-shadow:inset 0 0 0 2px var(--in)}
+.d.over{background:var(--warn)}
+.room .cnt{font-size:12px;color:var(--muted);font-weight:600}
+.room.has-free{border-color:var(--in);box-shadow:inset 0 0 0 1px var(--in),var(--shadow)}
+.room.over{border-color:var(--warn)}
+.room.over .cnt{color:var(--warn)}
+.room.blocked,.room.util{background:var(--idle-soft);box-shadow:none;color:var(--muted)}
+.room.blocked .rn,.room.util .rn{color:var(--muted)}
+.room .tag{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600}
+.room .tag .ic{width:14px;height:14px}
+.room.pick-sugg{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent),var(--shadow)}
+.room .star{position:absolute;top:4px;inset-inline-end:6px;color:var(--accent)}
+.room .star .ic{width:16px;height:16px;fill:currentColor}
+.sec-title{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;margin:18px 0 10px;color:var(--muted)}
+.sec-title:first-child{margin-top:0}
+.empty-note{padding:24px;text-align:center;color:var(--muted)}
+
+/* ---------- action bar ---------- */
+.bar{position:fixed;inset-inline:0;bottom:0;z-index:6;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 0 12px}
+.bar .wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.big{display:flex;align-items:center;justify-content:center;gap:10px;min-height:64px;border-radius:16px;border:0;font-family:var(--font-display);font-weight:700;font-size:20px;color:#fff;box-shadow:var(--shadow)}
+.big .ic{width:30px;height:30px}
+.big.in{background:var(--in)}
+.big.out{background:var(--out)}
+.big.neutral{background:var(--accent)}
+.big.ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.big:disabled{opacity:.45;cursor:not-allowed}
+:root[data-theme="dark"] .big.in,:root[data-theme="dark"] .big.out,:root[data-theme="dark"] .big.neutral{color:#0e1517}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .big.in,:root:not([data-theme="light"]) .big.out,:root:not([data-theme="light"]) .big.neutral{color:#0e1517}}
+
+/* ---------- sheets ---------- */
+#sheets .sheet{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column}
+@media (min-width:700px){
+  #sheets .sheet{inset:auto;top:50%;left:50%;transform:translate(-50%,-50%);width:min(600px,94vw);max-height:92vh;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
+  #sheets .sheet.wide{width:min(1040px,96vw)}
+  #scrim{position:fixed;inset:0;z-index:19;background:rgba(10,20,22,.45)}
+}
+.sh-head{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--surface)}
+.sh-head h2{flex:1;margin:0;font-family:var(--font-display);font-size:19px;line-height:1.25;text-wrap:balance;display:flex;align-items:center;gap:8px}
+.sh-head h2 .ic{width:26px;height:26px}
+.sh-head.in{box-shadow:inset 0 -4px 0 var(--in)}
+.sh-head.out{box-shadow:inset 0 -4px 0 var(--out)}
+.sh-body{flex:1;overflow:auto;padding:16px;-webkit-overflow-scrolling:touch}
+.sh-foot{padding:12px 16px 14px;border-top:1px solid var(--line);background:var(--surface);display:grid;gap:10px}
+.sh-foot.two{grid-template-columns:1fr 1fr}
+.steps{display:flex;gap:5px;align-items:center}
+.steps i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.steps i.on{background:var(--ink)}
+
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:138px;padding:14px 10px;border-radius:18px;border:2px solid var(--line);background:var(--surface);font-weight:700;font-size:18px;text-align:center;box-shadow:var(--shadow)}
+.tile .ic{width:46px;height:46px}
+.tile small{font-weight:500;font-size:13px;color:var(--muted)}
+.tile.in{color:var(--in)} .tile.out{color:var(--out)} .tile.acc{color:var(--accent)}
+.tile.in span,.tile.out span,.tile.acc span{color:var(--ink)}
+.tile.wide{grid-column:1/-1;min-height:96px;flex-direction:row}
+.tile.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+
+.paste{width:100%;min-height:220px;border-radius:16px;border:2px dashed var(--line);background:var(--surface);padding:14px;font-size:16px;line-height:1.6;resize:vertical}
+.paste:focus{border-color:var(--accent);border-style:solid;outline:0}
+.hint{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px;margin:10px 2px}
+.hint .ic{width:26px;height:26px;color:var(--accent)}
+.spin{width:54px;height:54px;border-radius:50%;border:5px solid var(--line);border-top-color:var(--accent);animation:spin 1s linear infinite;margin:30px auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.center{text-align:center}
+.lead{font-size:18px;font-weight:600}
+
+/* keypad */
+.kp-show{font-family:var(--font-display);font-size:38px;font-weight:700;text-align:center;letter-spacing:2px;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:10px;min-height:72px;font-variant-numeric:tabular-nums;direction:ltr}
+.kp-show .ph{color:var(--line)}
+.kp-label{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;margin-bottom:10px;color:var(--muted)}
+.kp-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;direction:ltr}
+.key{min-height:62px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);font-family:var(--font-display);font-size:28px;font-weight:600;box-shadow:var(--shadow)}
+.key.ok{background:var(--in);color:#fff;border-color:transparent}
+.key.del{color:var(--out)}
+.key:active{transform:scale(.97)}
+
+/* worker cards */
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--shadow)}
+.whead{display:flex;align-items:center;gap:12px}
+.whead .flag{font-size:40px}
+.wname{font-family:var(--font-display);font-size:21px;font-weight:700;line-height:1.25;direction:ltr;text-align:right;unicode-bidi:plaintext}
+.wsub{color:var(--muted);font-size:14px}
+.fields{display:grid;gap:8px;margin-top:12px}
+.field{display:flex;align-items:center;gap:10px;width:100%;text-align:start;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);min-height:56px}
+.field .fi{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--surface);color:var(--muted);flex:none}
+.field .fl{display:block;font-size:12px;color:var(--muted);line-height:1.2}
+.field .fv{display:block;font-weight:700;font-size:17px;line-height:1.3;word-break:break-word}
+.field .fb{flex:1;min-width:0}
+.field .pen{color:var(--muted)}
+.field .pen .ic{width:18px;height:18px}
+.field.missing{border-color:var(--warn);background:var(--warn-soft)}
+.field.static{cursor:default}
+.match{display:flex;gap:10px;align-items:center;border-radius:14px;padding:10px 12px;margin-bottom:12px;font-weight:600}
+.match.present{background:var(--warn-soft)}
+.match.absent{background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.status{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700}
+.status.in{background:var(--in-soft);color:var(--in)}
+.status.out{background:var(--idle-soft);color:var(--muted)}
+.list{display:grid;gap:8px}
+.wrow{display:flex;align-items:center;gap:10px;width:100%;text-align:start;padding:10px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);min-height:62px}
+.wrow .flag{font-size:28px}
+.wrow .wb{flex:1;min-width:0}
+.wrow .wn{font-weight:700;direction:ltr;text-align:right;unicode-bidi:plaintext;overflow-wrap:anywhere}
+.wrow .ws{font-size:13px;color:var(--muted)}
+.wrow .rbadge{font-family:var(--font-display);font-weight:700;font-size:15px;background:var(--bg);border-radius:10px;padding:4px 10px;white-space:nowrap}
+.wrow.gone{opacity:.7}
+.chooser{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.opt{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);min-height:96px;text-align:center;font-weight:600;font-size:14px;line-height:1.25}
+.opt .emoji{font-size:34px}
+.opt small{font-size:11px;color:var(--muted);font-weight:500}
+.opt.sel{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
+
+.confirm{display:grid;gap:14px;justify-items:center;text-align:center}
+.confirm .arrow{color:var(--muted)}
+.confirm .arrow .ic{width:34px;height:34px;transform:rotate(90deg)}
+.bigroom{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 28px;border-radius:20px;border:2px solid var(--accent);background:var(--surface)}
+.bigroom .rn{font-family:var(--font-display);font-size:54px;font-weight:700;line-height:1}
+.bigroom .dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:180px}
+.bigroom .d{width:18px;height:18px}
+.d.new{background:var(--in);box-shadow:0 0 0 4px var(--in-soft);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px var(--in-soft)}}
+.done{display:grid;justify-items:center;gap:12px;text-align:center;padding-top:20px}
+.okmark{width:110px;height:110px;border-radius:50%;display:grid;place-items:center;background:var(--in);color:#fff;animation:pop .35s ease-out}
+.okmark.out{background:var(--out)}
+.okmark .ic{width:64px;height:64px;stroke-width:3}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+.done .big-n{font-family:var(--font-display);font-size:30px;font-weight:700}
+.warnbox{display:flex;gap:10px;align-items:flex-start;background:var(--warn-soft);border-radius:14px;padding:10px 12px;font-size:15px;margin:10px 0}
+.warnbox .ic{color:var(--warn);margin-top:2px}
+
+/* forms */
+.form{display:grid;gap:12px}
+.form label{display:grid;gap:4px;font-weight:600;font-size:14px}
+.form input,.form select,.form textarea{border:1.5px solid var(--line);border-radius:12px;background:var(--surface);padding:10px 12px;min-height:48px;font-size:16px}
+.form .ltr{direction:ltr;text-align:right}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:48px;height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-size:24px;font-weight:700}
+.stepper b{font-family:var(--font-display);font-size:26px;min-width:40px;text-align:center}
+.toggle{display:flex!important;grid-template-columns:none!important;align-items:center;gap:10px;font-weight:600}
+.toggle input{width:24px;height:24px;min-height:0}
+
+/* menu / tables / log */
+.menu{display:grid;gap:10px}
+.mitem{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);font-weight:700;font-size:16px;min-height:62px}
+.mitem small{display:block;font-weight:500;font-size:13px;color:var(--muted)}
+.mitem .ic{color:var(--accent);width:26px;height:26px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;padding:8px 14px;font-weight:600;min-height:44px}
+.seg button.on{background:var(--accent);color:#fff}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface);max-height:70vh}
+table.t{border-collapse:collapse;font-size:13px;min-width:100%}
+table.t th,table.t td{border:1px solid var(--line);padding:6px 8px;white-space:nowrap;text-align:start;unicode-bidi:plaintext}
+table.t th{position:sticky;top:0;background:var(--idle-soft);z-index:1}
+table.t td.n{font-variant-numeric:tabular-nums}
+table.t tr.gone td{color:var(--muted)}
+table.t tr.empty td{background:color-mix(in srgb,var(--h-a) 12%,var(--surface))}
+.logitem{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.logitem .lb{flex:1;min-width:0;font-size:14px}
+.logitem .lt{font-size:12px;color:var(--muted)}
+.logitem.undone{opacity:.55}
+.small-btn{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 10px;font-weight:600;font-size:14px;min-height:40px}
+.small-btn .ic{width:18px;height:18px}
+.filelist{display:grid;gap:8px;margin-top:12px}
+.fileitem{display:grid;gap:6px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface)}
+.fileitem .fn{font-weight:600;font-size:14px;direction:ltr;text-align:right;overflow-wrap:anywhere}
+.fileitem.bad{border-color:var(--out)}
+.fileitem select{min-height:46px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);padding:0 10px;font-weight:600}
+.progress{height:12px;border-radius:999px;background:var(--line);overflow:hidden;margin:16px 0 8px}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .2s}
+details.more{margin-top:14px}
+details.more summary{cursor:pointer;font-weight:700;color:var(--muted);padding:8px 0;min-height:44px;display:flex;align-items:center}
+
+/* toast & busy */
+#toast{position:fixed;inset-inline:12px;bottom:96px;z-index:40;display:flex;justify-content:center;pointer-events:none}
+#toast .t{pointer-events:auto;display:flex;align-items:center;gap:12px;background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 14px;box-shadow:0 8px 30px rgba(0,0,0,.3);font-weight:600;max-width:560px}
+#toast .t button{border:0;border-radius:10px;padding:6px 12px;background:var(--bg);color:var(--ink);font-weight:700;min-height:40px}
+#busy{position:fixed;inset:0;z-index:50;background:rgba(10,20,22,.35);display:grid;place-items:center}
+#busy .b{background:var(--surface);border-radius:18px;padding:18px 26px;text-align:center;font-weight:700;box-shadow:var(--shadow)}
+#busy .spin{margin:6px auto 12px}
+.loading{padding:60px 16px;text-align:center;color:var(--muted)}
+a.mitem{text-decoration:none;color:inherit}
+.kp-show.dots{letter-spacing:10px}
+.pin-err{color:var(--out);font-weight:700;text-align:center;margin:10px 0 0}
+.send-btn{height:46px;padding:0 13px;border-radius:12px;border:0;background:var(--in);color:#fff;display:flex;align-items:center;gap:6px;font-family:var(--font-display);font-weight:700;font-size:15px;box-shadow:var(--shadow);flex:none}
+.send-btn .ic{width:21px;height:21px}
+.send-btn[hidden]{display:none}
+.big.go{background:var(--in)}
+.sh-foot .big{width:100%}
+.xfile{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;border:1.5px solid var(--line);background:var(--surface)}
+.xfile .xl{width:54px;height:54px;border-radius:13px;display:grid;place-items:center;background:#1d6f42;color:#fff;flex:none}
+.xfile .xl .ic{width:30px;height:30px}
+.xfile b{display:block;font-size:16px;overflow-wrap:anywhere}
+.xfile small{display:block;color:var(--muted);margin-top:4px;font-size:13.5px}
+.lead .ic{width:22px;height:22px;vertical-align:-4px;color:var(--in)}
+.wa-steps{display:flex;align-items:flex-start;justify-content:center;gap:4px;margin:16px 0 4px}
+.wa-steps .st{display:flex;flex-direction:column;align-items:center;gap:6px;width:68px}
+.wa-steps .em{font-size:28px;width:56px;height:56px;border-radius:14px;display:grid;place-items:center;background:var(--in-soft);font-family:var(--emoji)}
+.wa-steps .ar{color:var(--muted);font-size:20px;margin-top:16px}
+.wa-steps small{font-size:12.5px;color:var(--muted);text-align:center;line-height:1.3}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap" id="top"></div></header>
+<main><div class="wrap" id="main"><div class="loading"><div class="spin"></div>جاري التحميل…</div></div></main>
+<nav class="bar" id="bar" hidden><div class="wrap">
+  <button class="big in" data-act="startAdd" id="btn-in"><span class="bi"></span><span>دخول</span></button>
+  <button class="big out" data-act="startExit" id="btn-out"><span class="bi"></span><span>خروج</span></button>
+</div></nav>
+<div id="sheets"></div>
+<div id="toast" aria-live="polite"></div>
+<div id="busy" hidden><div class="b"><div class="spin"></div><div id="busy-t">لحظة…</div></div></div>
+<input type="file" id="file-img" accept="image/jpeg,image/png,image/webp" hidden>
+<input type="file" id="file-xlsx" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple hidden>
+
+<script>
+'use strict';
+/* =====================================================================
+   1. Icons
+   ===================================================================== */
+const ICON = (() => {
+  const p = {
+    in: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>',
+    out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+    paste: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/>',
+    camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+    keypad: '<g fill="currentColor" stroke="none"><circle cx="6" cy="5" r="1.6"/><circle cx="12" cy="5" r="1.6"/><circle cx="18" cy="5" r="1.6"/><circle cx="6" cy="11" r="1.6"/><circle cx="12" cy="11" r="1.6"/><circle cx="18" cy="11" r="1.6"/><circle cx="6" cy="17" r="1.6"/><circle cx="12" cy="17" r="1.6"/><circle cx="18" cy="17" r="1.6"/><circle cx="12" cy="22" r="1.6"/></g>',
+    search: '<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+    menu: '<line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>',
+    x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    check: '<polyline points="20 6 9 17 4 12"/>',
+    undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+    move: '<polyline points="17 11 21 7 17 3"/><line x1="21" y1="7" x2="9" y2="7"/><polyline points="7 21 3 17 7 13"/><line x1="15" y1="17" x2="3" y2="17"/>',
+    edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+    download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+    upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+    bed: '<path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/>',
+    building: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/>',
+    table: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>',
+    history: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+    back: '<polyline points="9 18 15 12 9 6"/>',
+    user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+    plane: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+    home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+    xcircle: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>',
+    help: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+    star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    ban: '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
+    wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    idcard: '<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M14 10h4M14 14h4"/>',
+    hash: '<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>',
+    globe: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+    briefcase: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>',
+    car: '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
+    layers: '<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
+    note: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h5"/>',
+    alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/>',
+    door: '<path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.56v16.16a1 1 0 0 1-1.24.97L5 20V5.56a2 2 0 0 1 1.52-1.94l4-1A2 2 0 0 1 13 4.56Z"/>',
+    plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+    lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    send: '<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',
+  };
+  const o = {};
+  for (const k in p) o[k] = `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p[k]}</svg>`;
+  return o;
+})();
+
+/* =====================================================================
+   2. Reference data
+   ===================================================================== */
+const H = {
+  w: { id: 'w', name: 'سكن العمال', title: 'جدول بيانات سكن العمال اخر تحديث', emptyFill: '45B0E1',
+       sheetW: 'سكن العمال - العمال', sheetB: 'سكن العمال - السراير', fileW: 'جدول سكن العمال', fileB: 'سراير سكن العمال' },
+  a: { id: 'a', name: 'السكن الإداري', title: 'جدول بيانات السكن الأداري اخر تحديث', emptyFill: '6D9EEB',
+       sheetW: 'الإداري - العمال', sheetB: 'الإداري - السراير', fileW: 'جدول السكن الإداري', fileB: 'سراير السكن الإداري' },
+};
+const HEAD = {
+  w: ['ارقام الغرف', 'Name/الاسم', '', 'Employee No./الرقم الوظيفي', 'Car No./رقم السيارة', 'Model/نوع السيارة', 'Iqamh No/رقم الاقامة', 'Department/القسم', 'Work/المسمى الوظيفي', 'Nationality/الجنسية', 'Notes/ملاحظات'],
+  a: ['ارقام الغرف', 'عدد الاشخاص', 'الاسماء', 'الرقم الوظيفي', 'رقم الاقامة', 'الادارة', 'العمل', 'الجنسية', 'ملاحظات'],
+};
+const COLS = { w: [17.3, 44.4, 15.9, 28.4, 19.6, 19.4, 21.3, 40.4, 33.6, 20.3, 99.6], a: [10, 10.2, 39.5, 20.9, 25.1, 34.2, 23.2, 19.8, 59.9] };
+const BEDS_HEAD = ['رقم الغرفة', 'عدد الاشخاص', 'عدد الاسرة', 'كم مجال للاضافة', 'الجنسية', 'ملاحظات', 'عدد الاسرة الزائدة'];
+
+const NATS = [
+  { k: 'Pakistan', ar: 'باكستان', f: '🇵🇰', al: ['pakistan', 'pakistani', 'pakisten', 'باكستان', 'باكستاني', 'باكستانيه'] },
+  { k: 'India', ar: 'الهند', f: '🇮🇳', al: ['india', 'indian', 'الهند', 'هندي', 'هنديه', 'هنود'] },
+  { k: 'Nepal', ar: 'نيبال', f: '🇳🇵', al: ['nepal', 'nepali', 'nepalese', 'نيبال', 'نيبالي', 'نيباليه'] },
+  { k: 'Egypt', ar: 'مصر', f: '🇪🇬', al: ['egypt', 'egyptian', 'مصر', 'مصري', 'مصريه'] },
+  { k: 'Bangladesh', ar: 'بنغلاديش', f: '🇧🇩', al: ['bangladesh', 'bangladeshi', 'bengali', 'bangali', 'بنغلاديش', 'بنجلاديش', 'بنقلاديش', 'بنغلادش', 'بنغالي', 'بنقالي', 'بنجالي', 'بنغلاديشي', 'بنجلاديشي', 'بنقلاديشي'] },
+  { k: 'Sri Lanka', ar: 'سريلانكا', f: '🇱🇰', al: ['sri lanka', 'sir lanka', 'srilanka', 'sirlanka', 'sirlenke', 'sri lankan', 'srilankan', 'سريلانكا', 'سيرلانكا', 'سريلانكي', 'سيرلانكي'] },
+  { k: 'Philippine', ar: 'الفلبين', f: '🇵🇭', al: ['philippine', 'philippines', 'philppine', 'philipine', 'phillipine', 'filipino', 'الفلبين', 'فلبين', 'فلبيني', 'فلبينيه'] },
+  { k: 'Jordan', ar: 'الأردن', f: '🇯🇴', al: ['jordan', 'jordanian', 'الاردن', 'اردني'] },
+  { k: 'Yemen', ar: 'اليمن', f: '🇾🇪', al: ['yemen', 'yeman', 'yemeni', 'اليمن', 'يمني'] },
+  { k: 'Sudan', ar: 'السودان', f: '🇸🇩', al: ['sudan', 'sudanese', 'السودان', 'سوداني'] },
+  { k: 'Syria', ar: 'سوريا', f: '🇸🇾', al: ['syria', 'syrian', 'سوريا', 'سوري'] },
+  { k: 'Saudi', ar: 'السعودية', f: '🇸🇦', al: ['saudi', 'saudi arabia', 'ksa', 'السعوديه', 'سعودي'] },
+  { k: 'Ethiopia', ar: 'إثيوبيا', f: '🇪🇹', al: ['ethiopia', 'ethiopian', 'اثيوبيا', 'اثيوبي'] },
+  { k: 'Kenya', ar: 'كينيا', f: '🇰🇪', al: ['kenya', 'kenyan', 'كينيا', 'كيني'] },
+  { k: 'Uganda', ar: 'أوغندا', f: '🇺🇬', al: ['uganda', 'ugandan', 'اوغندا', 'اوغندي'] },
+  { k: 'Indonesia', ar: 'إندونيسيا', f: '🇮🇩', al: ['indonesia', 'indonesian', 'اندونيسيا', 'اندونيسي'] },
+  { k: 'Afghanistan', ar: 'أفغانستان', f: '🇦🇫', al: ['afghanistan', 'afghan', 'افغانستان', 'افغاني'] },
+  { k: 'Myanmar', ar: 'ميانمار', f: '🇲🇲', al: ['myanmar', 'burma', 'burmese', 'ميانمار', 'بورما', 'بورمي', 'برماوي'] },
+  { k: 'Morocco', ar: 'المغرب', f: '🇲🇦', al: ['morocco', 'moroccan', 'المغرب', 'مغربي'] },
+  { k: 'Palestine', ar: 'فلسطين', f: '🇵🇸', al: ['palestine', 'palestinian', 'فلسطين', 'فلسطيني'] },
+  { k: 'Lebanon', ar: 'لبنان', f: '🇱🇧', al: ['lebanon', 'lebanese', 'لبنان', 'لبناني'] },
+  { k: 'Tunisia', ar: 'تونس', f: '🇹🇳', al: ['tunisia', 'tunisian', 'تونس', 'تونسي'] },
+  { k: 'Eritrea', ar: 'إريتريا', f: '🇪🇷', al: ['eritrea', 'eritrean', 'اريتريا', 'اريتري'] },
+  { k: 'Somalia', ar: 'الصومال', f: '🇸🇴', al: ['somalia', 'somali', 'الصومال', 'صومالي'] },
+  { k: 'Nigeria', ar: 'نيجيريا', f: '🇳🇬', al: ['nigeria', 'nigerian', 'نيجيريا', 'نيجيري'] },
+  { k: 'Ghana', ar: 'غانا', f: '🇬🇭', al: ['ghana', 'ghanaian', 'غانا', 'غاني'] },
+  { k: 'Chad', ar: 'تشاد', f: '🇹🇩', al: ['chad', 'chadian', 'تشاد', 'تشادي'] },
+  { k: 'Turkey', ar: 'تركيا', f: '🇹🇷', al: ['turkey', 'turkish', 'تركيا', 'تركي'] },
+];
+const JOBS = [
+  { k: 'Driver', ar: 'سائق', e: '🚚', al: ['driver', 'سائق', 'سواق', 'سايق', 'درايفر'] },
+  { k: 'Labor', ar: 'عامل', e: '👷', al: ['labor', 'labour', 'laborer', 'labourer', 'worker', 'helper', 'عامل', 'عامل عادي', 'مساعد'] },
+  { k: 'Welder', ar: 'لحام', e: '🔥', al: ['welder', 'لحام'] },
+  { k: 'Mechanic', ar: 'ميكانيكي', e: '🔧', al: ['mechanic', 'ميكانيكي', 'ميكانيك', 'مكانيكي'] },
+  { k: 'Pump', ar: 'مضخة', e: '⛽', al: ['pump', 'pump operator', 'مضخه', 'مضخة', 'بمب', 'بامب'] },
+  { k: 'Lodar', ar: 'لودر', e: '🚜', al: ['lodar', 'loader', 'loder', 'لودر', 'شيول'] },
+  { k: 'Technician', ar: 'فني', e: '🛠️', al: ['technician', 'فني'] },
+  { k: 'Electric', ar: 'كهربائي', e: '⚡', al: ['electric', 'electrician', 'كهربائي', 'كهربجي'] },
+  { k: 'Computer', ar: 'كمبيوتر', e: '💻', al: ['computer', 'كمبيوتر'] },
+  { k: 'Plant', ar: 'محطة', e: '🏭', al: ['plant', 'plant operator', 'محطه', 'بلانت'] },
+  { k: 'Forman', ar: 'فورمن', e: '📋', al: ['forman', 'foreman', 'فورمن', 'فورمان', 'رئيس عمال'] },
+  { k: 'Security', ar: 'حارس', e: '🛡️', al: ['security', 'guard', 'حارس', 'امن', 'حراسه'] },
+  { k: 'Operator', ar: 'مشغل', e: '⚙️', al: ['operator', 'operater', 'مشغل', 'اوبريتر'] },
+  { k: 'Mason', ar: 'بنّاء', e: '🧱', al: ['mason', 'بناء', 'مليس'] },
+  { k: 'Banshree', ar: 'بنشري', e: '🛞', al: ['banshree', 'بنشري', 'بنشر'] },
+  { k: 'Excavator', ar: 'حفار', e: '🏗️', al: ['excavator', 'حفار', 'بوكلين'] },
+  { k: 'Engineer', ar: 'مهندس', e: '📐', al: ['engineer', 'مهندس'] },
+  { k: 'Sales Representative', ar: 'مندوب مبيعات', e: '💼', al: ['sales representative', 'sales rep', 'مندوب مبيعات', 'مندوب'] },
+  { k: 'Plumber', ar: 'سباك', e: '🚰', al: ['plumber', 'سباك'] },
+  { k: 'Supervisor', ar: 'مشرف', e: '👔', al: ['supervisor', 'مشرف'] },
+  { k: 'Accountant', ar: 'محاسب', e: '🧮', al: ['accountant', 'محاسب'] },
+  { k: 'Tea Boy', ar: 'قهوجي', e: '☕', al: ['tea boy', 'قهوجي', 'مباشر'] },
+  { k: 'Data Entry', ar: 'مدخل بيانات', e: '⌨️', al: ['data entry', 'date entery', 'date entry', 'مدخل بيانات', 'ادخال بيانات'] },
+  { k: 'Dispatch', ar: 'ديسباتش', e: '📦', al: ['dispatch', 'despatch', 'ديسباتش'] },
+  { k: 'Manager', ar: 'مدير', e: '🧑‍💼', al: ['manager', 'مدير'] },
+  { k: 'Crane', ar: 'كرين', e: '🏗️', al: ['crane', 'كرين', 'رافعه'] },
+  { k: 'Forklift', ar: 'رافعة شوكية', e: '🚜', al: ['forklift', 'رافعه شوكيه', 'فوركلفت'] },
+  { k: 'Salesman', ar: 'بائع', e: '🏷️', al: ['salesman', 'بائع'] },
+  { k: 'Steel Fixer', ar: 'حداد مسلح', e: '🔩', al: ['steel fixer', 'fix steel', 'حداد', 'حداد مسلح'] },
+  { k: 'Painter', ar: 'دهان', e: '🎨', al: ['painter', 'pinter', 'دهان', 'صباغ'] },
+  { k: 'Store Keeper', ar: 'أمين مستودع', e: '📦', al: ['store keeper', 'storekeeper', 'امين مستودع'] },
+  { k: 'Safety Officer', ar: 'سلامة', e: '🦺', al: ['safety officer', 'safety', 'سلامه', 'مسؤول سلامه'] },
+  { k: 'Cook', ar: 'طباخ', e: '🍳', al: ['cook', 'chef', 'طباخ'] },
+  { k: 'Cleaner', ar: 'عامل نظافة', e: '🧹', al: ['cleaner', 'عامل نظافه', 'نظافه'] },
+  { k: 'Carpenter', ar: 'نجار', e: '🪚', al: ['carpenter', 'نجار'] },
+];
+const SITES = [
+  { ar: 'كسارة', note: 'Go To Ksarh كسارة', from: 'كساره', al: ['كساره', 'كسارة', 'ksarh', 'ksara', 'crusher'] },
+  { ar: 'تبوك', note: 'Go To Tabuk تبوك', from: 'تبوك', al: ['تبوك', 'tabuk'] },
+  { ar: 'ملهم', note: 'Go To Mlhm ملهم', from: 'ملهم', al: ['ملهم', 'mlhm', 'malham'] },
+  { ar: 'فرع ٣٢', note: 'Go To Site 32 / فرع ٣٢', from: 'فرع ٣٢', al: ['فرع ٣٢', 'فرع 32', 'site 32', 'موقع 32'] },
+  { ar: 'بيشة', note: 'Go To beshah بيشه', from: 'بيشه', al: ['بيشه', 'بيشة', 'beshah', 'bisha'] },
+  { ar: 'المزرعة', note: 'Go To garden المزرعة', from: 'المزرعه', al: ['المزرعه', 'المزرعة', 'مزرعه', 'garden', 'قاردن', 'farm'] },
+  { ar: 'أملج', note: 'Go to the Amalj أملج', from: 'أملج', al: ['املج', 'أملج', 'amalj', 'umluj'] },
+  { ar: 'بيت الأستاذ سعيد', note: 'Go To Mr.Saeed house راح بيت الاستاذ سعيد', from: 'بيت الاستاذ سعيد', al: ['بيت الاستاذ سعيد', 'mr.saeed', 'mr saeed'] },
+];
+const REASONS = [
+  { k: 'vacation', ar: 'إجازة', icon: 'plane' },
+  { k: 'site', ar: 'راح موقع ثاني', icon: 'pin' },
+  { k: 'outside', ar: 'يسكن برّا', icon: 'home' },
+  { k: 'final', ar: 'إخلاء طرف', icon: 'xcircle' },
+  { k: 'absent', ar: 'مو موجود', icon: 'help' },
+];
+const MODELS = ['Non', 'Mixer', 'Pump', 'Bulker', 'Trilla', 'Hillux', 'Dianna', 'Isuzu D-Max'];
+const COND_RE = /مكيف|ممنوع|خرب|مصادر|غرف|مخزن|حمام|مطبخ|مستودع/;
+
+/* =====================================================================
+   3. Small helpers
+   ===================================================================== */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const todayStr = (d = new Date()) => `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+const isoDay = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function normDigits(s) { return String(s ?? '').replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 0x660)).replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 0x6F0)); }
+function clean(s) { return s == null ? '' : String(s).replace(/[‎‏‪-‮⁦-⁩ ]/g, ' ').replace(/[ \t]+/g, ' ').trim(); }
+function idNorm(s) { return normDigits(s).replace(/\D/g, '').replace(/^0+/, ''); }
+function idText(v) { if (v == null) return ''; if (typeof v === 'number') return Number.isInteger(v) ? String(v) : String(Math.round(v)); return clean(normDigits(v)); }
+function numOrStr(s) { const t = String(s ?? '').trim(); return /^\d{1,15}$/.test(t) ? Number(t) : t; }
+function normAr(s) {
+  return clean(normDigits(s)).toLowerCase().replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
+    .replace(/[ً-ٰٟـ]/g, '').replace(/\s+/g, ' ').trim();
+}
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function aliasIndex(list) {
+  const exact = new Map(); const parts = [];
+  for (const it of list) for (const a of [it.k, ...it.al]) { const n = normAr(a); exact.set(n, it); if (n.length >= 3) parts.push([new RegExp(`(^|[^\\p{L}])${escRe(n)}(?=[^\\p{L}]|$)`, 'u'), it]); }
+  return { exact, parts };
+}
+const NAT_IX = aliasIndex(NATS), JOB_IX = aliasIndex(JOBS);
+const NAT_BY = Object.fromEntries(NATS.map(n => [n.k, n]));
+const JOB_BY = Object.fromEntries(JOBS.map(j => [j.k, j]));
+function canon(ix, raw, loose = true) {
+  const n = normAr(raw); if (!n) return null;
+  if (ix.exact.has(n)) return ix.exact.get(n);
+  if (!loose) return null;
+  for (const [re, it] of ix.parts) if (re.test(n)) return it;
+  return null;
+}
+const canonNat = raw => canon(NAT_IX, raw)?.k || '';
+const canonJob = raw => canon(JOB_IX, raw)?.k || '';
+function natFlag(raw) { const k = canonNat(raw); return k ? NAT_BY[k].f : '🏳️'; }
+function natAr(raw) { const k = canonNat(raw); return k ? NAT_BY[k].ar : clean(raw); }
+function jobInfo(raw) { const k = canonJob(raw); return k ? JOB_BY[k] : (raw ? { k: clean(raw), ar: clean(raw), e: '🧰' } : null); }
+function stripCheck(name) { return clean(String(name || '').replace(/✓/g, ' ')); }
+function addCheck(name) {
+  const n = stripCheck(name);
+  const m = n.match(/^(.*?)\s*(\/\/\s*[?؟]+)$/);
+  return m ? `${m[1].trim()} ✓${m[2].replace(/\s+/g, '')}` : (n ? `${n} ✓` : '');
+}
+function displayName(name) { return stripCheck(name).replace(/\/\/\s*[?؟]+/g, '').trim(); }
+function shortName(name) {
+  const t = displayName(name).split(/\s+/).filter(Boolean);
+  if (!t.length) return '';
+  const pre = /^(mohammed|muhammad|mohamed|mohammad|muhammed|md|mohd|abdul|abd|abdel|abdel|al|el|syed|sayed|sheikh|mr)$/i;
+  return (pre.test(t[0]) && t[1]) ? `${t[0]} ${t[1]}` : t[0];
+}
+function appendNote(old, add) { old = clean(old); return old ? `${old} | ${add}` : add; }
+function carText(car, model) {
+  const c = car && car !== 'Non' ? `<span class="num">${esc(car)}</span>` : '';
+  const m = model && model !== 'Non' ? esc(model) : '';
+  return (c || m) ? [c, m].filter(Boolean).join(' ') : 'بدون سيارة';
+}
+function plainWorker(w) { const o = { ...w }; delete o.id; return o; }
+function sameWorker(a, b) {
+  if (!a || !b) return a === b;
+  for (const k of ['h', 'room', 'code', 'name', 'emp', 'iq', 'notes', 'nat', 'job', 'dept']) if ((a[k] ?? '') !== (b[k] ?? '')) return false;
+  return true;
+}
+
+/* =====================================================================
+   4. Beds logic
+   ===================================================================== */
+function parseBeds(txt) {
+  let d = 0, s = 0; const re = /(\d+)\s*-\s*(double|single|dobule|duble)/gi; let m;
+  const t = String(txt ?? '');
+  while ((m = re.exec(t))) { if (/^s/i.test(m[2])) s += +m[1]; else d += +m[1]; }
+  return { d, s, cap: 2 * d + s };
+}
+function bedsText(d, s) { return [d ? `${d}-double` : '', s ? `${s}-Single` : ''].filter(Boolean).join(' '); }
+/* Most whole beds that can stay empty: people fill the beds so that the largest beds stay free. */
+function extraBeds(d, s, p) {
+  let best = { fd: 0, fs: 0, cap: -1 };
+  for (let fd = d; fd >= 0; fd--) for (let fs = s; fs >= 0; fs--) {
+    if (p <= 2 * (d - fd) + (s - fs)) { const c = 2 * fd + fs; if (c > best.cap || (c === best.cap && fd > best.fd)) best = { fd, fs, cap: c }; }
+  }
+  return best.cap < 0 ? { fd: 0, fs: 0, cap: 0 } : best;
+}
+function extraText(x) { const t = [x.fd ? `${x.fd}-double` : '', x.fs ? `${x.fs}-Single` : ''].filter(Boolean).join(' '); return t || 0; }
+const byOrd = (a, b) => (a.ord ?? 0) - (b.ord ?? 0);
+
+/* =====================================================================
+   5. State
+   ===================================================================== */
+const S = {
+  mode: 'loading',          // loading | gs
+  rooms: { w: null, a: null },
+  workers: new Map(),
+  h: 'w', onlyFree: false, q: '',
+  canWrite: true, imgOk: true, url: '', pinMem: '',
+  cache: {}, stale: false, ready: false, busy: false,
+};
+function rooms(h) {
+  if (S.cache[h]) return S.cache[h];
+  const map = new Map();
+  for (const r of (S.rooms[h]?.list || [])) map.set(r.n, { ...r, h, present: [], absent: [], labels: [] });
+  for (const w of S.workers.values()) {
+    if (w.h !== h || w.room == null) continue;
+    let r = map.get(w.room);
+    if (!r) { r = { n: w.room, beds: '', note: '', names: false, blocked: false, util: null, h, present: [], absent: [], labels: [], phantom: true }; map.set(w.room, r); }
+    if (w.label) r.labels.push(w); else if (w.code === 1) r.present.push(w); else r.absent.push(w);
+  }
+  const list = [...map.values()].sort((a, b) => a.n - b.n);
+  for (const r of list) {
+    const { d, s, cap } = parseBeds(r.beds);
+    r.d = d; r.s = s; r.cap = cap; r.p = r.present.length;
+    r.free = Math.max(0, cap - r.p); r.over = Math.max(0, r.p - cap);
+    r.extra = extraBeds(d, s, r.p);
+    r.present.sort(byOrd); r.absent.sort(byOrd);
+    r.nat = {}; for (const w of r.present) { const k = canonNat(w.nat) || clean(w.nat) || '?'; r.nat[k] = (r.nat[k] || 0) + 1; }
+    r.available = !r.blocked && !r.util && r.free > 0;
+  }
+  return (S.cache[h] = list);
+}
+function roomOf(h, n) { return rooms(h).find(r => r.n === n); }
+function totals(h) {
+  let free = 0, present = 0, roomsFree = 0, over = 0;
+  for (const r of rooms(h)) { present += r.p; over += r.over; if (r.available) { free += r.free; roomsFree++; } }
+  return { free, present, roomsFree, over };
+}
+function natSummary(r) {
+  const e = Object.entries(r.nat).sort((a, b) => b[1] - a[1]);
+  if (!e.length) return 'غرفة فارغة';
+  if (e.length === 1) return e[0][0];
+  return e.map(([k, c]) => `${c} ${k}`).join(' / ');
+}
+function workersOf(h) { return [...S.workers.values()].filter(w => w.h === h).sort((a, b) => (a.room - b.room) || byOrd(a, b)); }
+function nextOrd(h) { let m = 0; for (const w of S.workers.values()) if (w.h === h && (w.ord ?? 0) > m) m = w.ord; return Math.floor(m) + 1; }
+function topValues(field, n, h) {
+  const c = new Map();
+  for (const w of S.workers.values()) { if (w.label || (h && w.h !== h)) continue; const v = clean(w[field]); if (v) c.set(v, (c.get(v) || 0) + 1); }
+  return [...c.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(e => e[0]);
+}
+function deptForJob(job) {
+  const k = canonJob(job) || clean(job); if (!k) return '';
+  const c = new Map();
+  for (const w of S.workers.values()) if ((canonJob(w.job) || clean(w.job)) === k && clean(w.dept)) { const d = clean(w.dept); c.set(d, (c.get(d) || 0) + 1); }
+  let best = '', n = 0; for (const [d, v] of c) if (v > n) { best = d; n = v; }
+  return best;
+}
+
+/* =====================================================================
+   6. Storage: artifact database, or this device only (file mode)
+   ===================================================================== */
+const LS_PIN = 'housing-pin-v1';
+function getPin() { try { return localStorage.getItem(LS_PIN) || S.pinMem || ''; } catch (e) { return S.pinMem || ''; } }
+function setPin(p) { S.pinMem = p || ''; try { if (p) localStorage.setItem(LS_PIN, p); else localStorage.removeItem(LS_PIN); } catch (e) { /* storage may be blocked */ } }
+// The link carries the Apps Script deployment id after #, so the id is not in the public code.
+const LS_API = 'housing-api-v1';
+function readApiId() {
+  let h = '';
+  try { h = decodeURIComponent((location.hash || '').slice(1)); } catch (e) { h = (location.hash || '').slice(1); }
+  const m = h.match(/[A-Za-z0-9_-]{30,}/);
+  if (m) { try { localStorage.setItem(LS_API, m[0]); } catch (e) { /* storage may be blocked */ } return m[0]; }
+  try { return localStorage.getItem(LS_API) || ''; } catch (e) { return ''; }
+}
+const API_ID = readApiId();
+const API_URL = API_ID ? `https://script.google.com/macros/s/${API_ID}/exec` : '';
+window.addEventListener('hashchange', () => { if (readApiId() !== API_ID) location.reload(); });
+async function gsRun(req) {
+  if (!API_URL) throw { code: 'nolink' };
+  let res, txt;
+  try {
+    // plain-text body = no preflight; credentials omitted = no Google cookies, so several signed-in accounts don't matter
+    res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(req), credentials: 'omit', cache: 'no-store', redirect: 'follow' });
+    txt = await res.text();
+  } catch (e) { throw { code: 'net', message: String((e && e.message) || e) }; }
+  let r;
+  try { r = JSON.parse(txt); } catch (e) { console.warn('api reply', res && res.status, String(txt).slice(0, 300)); throw { code: 'bad', message: 'not json' }; }
+  if (r.ok) return r.res;
+  throw { code: r.err, message: r.msg };
+}
+async function call(op, payload = {}) {
+  try { return await gsRun({ op, pin: getPin(), ...payload }); }
+  catch (e) {
+    if (e && (e.code === 'badpin' || e.code === 'nopin')) { setPin(''); if (!PIN) openPin('enter'); }
+    if (e && e.code === 'changed') loadAll(true);
+    throw e;
+  }
+}
+function setData(d) {
+  if (!d) return;
+  S.rooms = { w: (d.rooms && d.rooms.w) || null, a: (d.rooms && d.rooms.a) || null };
+  S.workers = new Map((d.workers || []).map(w => [w.id, w]));
+  if (d.url) S.url = d.url;
+  S.ready = true; S.stale = false; changed();
+}
+async function loadAll(quiet) {
+  try { const r = await call('load'); setData(r.data); }
+  catch (e) { if (e && e.code === 'badpin') return; S.ready = true; S.stale = true; render(); if (!quiet) toast(errText(e)); }
+}
+function errText(e) {
+  const c = e && e.code;
+  if (c === 'changed') return 'البيانات تغيّرت من جهاز ثاني. حدّثتها لك، جرّب مرة ثانية.';
+  if (c === 'badpin') return 'الرمز غلط';
+  if (c === 'locked') return 'محاولات كثيرة. انتظر ربع ساعة وجرّب.';
+  if (c === 'net' || c === 'nogs') return 'ما فيه اتصال. تأكد من الإنترنت وجرّب مرة ثانية.';
+  if (c === 'nolink') return 'افتح الرابط الكامل اللي وصلك.';
+  return 'ما انحفظ. جرّب مرة ثانية.';
+}
+
+/* =====================================================================
+   7. Excel files: a small reader and writer (zip + XML)
+   ===================================================================== */
+async function unzip(buf) {
+  const u8 = new Uint8Array(buf), dv = new DataView(buf);
+  let e = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) if (dv.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) throw new Error('zip');
+  const count = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true);
+  const td = new TextDecoder(); const out = new Map();
+  for (let k = 0; k < count; k++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('zip-cd');
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nlen = dv.getUint16(p + 28, true), xlen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true), loff = dv.getUint32(p + 42, true);
+    const name = td.decode(u8.subarray(p + 46, p + 46 + nlen));
+    p += 46 + nlen + xlen + clen;
+    const start = loff + 30 + dv.getUint16(loff + 26, true) + dv.getUint16(loff + 28, true);
+    out.set(name, { method, data: u8.subarray(start, start + csize) });
+  }
+  return out;
+}
+async function inflate(ent) {
+  if (ent.method === 0) return ent.data;
+  if (ent.method !== 8) throw new Error('method');
+  if (typeof DecompressionStream === 'undefined') throw new Error('nostream');
+  const s = new Blob([ent.data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+const NS_R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+const tags = (el, name) => [...el.getElementsByTagNameNS('*', name)];
+function colIndex(ref) { let n = 0; for (const ch of ref) { const c = ch.charCodeAt(0); if (c >= 65 && c <= 90) n = n * 26 + (c - 64); else break; } return n; }
+async function readXlsx(buf) {
+  const z = await unzip(buf);
+  const td = new TextDecoder();
+  const txt = async name => { const e = z.get(name); return e ? td.decode(await inflate(e)) : null; };
+  const xml = s => new DOMParser().parseFromString(s, 'application/xml');
+  const wb = xml(await txt('xl/workbook.xml'));
+  const rels = xml(await txt('xl/_rels/workbook.xml.rels'));
+  const rel = {}; for (const r of tags(rels, 'Relationship')) rel[r.getAttribute('Id')] = r.getAttribute('Target');
+  const ss = []; const ssx = await txt('xl/sharedStrings.xml');
+  if (ssx) for (const si of tags(xml(ssx), 'si')) ss.push(tags(si, 't').filter(t => !t.closest || !t.closest('rPh')).map(t => t.textContent).join(''));
+  const sheets = [];
+  for (const sh of tags(wb, 'sheet')) {
+    const rid = sh.getAttributeNS(NS_R, 'id') || sh.getAttribute('r:id');
+    let target = rel[rid] || ''; target = target.startsWith('/') ? target.slice(1) : 'xl/' + target.replace(/^\.\//, '');
+    const x = await txt(target);
+    sheets.push({ name: sh.getAttribute('name'), rows: x ? parseSheet(xml(x), ss) : [] });
+  }
+  return sheets;
+}
+function parseSheet(doc, ss) {
+  const rows = [];
+  for (const row of tags(doc, 'row')) {
+    const r = +row.getAttribute('r'); const arr = []; let ci = 0;
+    for (const c of tags(row, 'c')) {
+      const ref = c.getAttribute('r'); const col = ref ? colIndex(ref) : ci + 1; ci = col;
+      const t = c.getAttribute('t'); const vEl = tags(c, 'v')[0]; let v = null;
+      if (t === 's') v = vEl ? (ss[+vEl.textContent] ?? '') : null;
+      else if (t === 'inlineStr') v = tags(c, 't').map(x => x.textContent).join('');
+      else if (t === 'str' || t === 'e') v = vEl ? vEl.textContent : null;
+      else if (t === 'b') v = vEl ? vEl.textContent === '1' : null;
+      else if (vEl && vEl.textContent !== '') { const n = Number(vEl.textContent); v = isNaN(n) ? vEl.textContent : n; }
+      arr[col] = v;
+    }
+    rows[r] = arr;
+  }
+  return rows;
+}
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+async function deflateRaw(u8) {
+  if (typeof CompressionStream === 'undefined') return null;
+  try { const s = new Blob([u8]).stream().pipeThrough(new CompressionStream('deflate-raw')); return new Uint8Array(await new Response(s).arrayBuffer()); } catch (e) { return null; }
+}
+async function makeZip(files) {
+  const enc = new TextEncoder(); const parts = [], central = []; let off = 0;
+  const now = new Date();
+  const dt = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  const dd = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  for (const f of files) {
+    const nb = enc.encode(f.name); const raw = typeof f.data === 'string' ? enc.encode(f.data) : f.data; const crc = crc32(raw);
+    let comp = await deflateRaw(raw), method = 8; if (!comp || comp.length >= raw.length) { comp = raw; method = 0; }
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, method, true);
+    lh.setUint16(10, dt, true); lh.setUint16(12, dd, true); lh.setUint32(14, crc, true); lh.setUint32(18, comp.length, true); lh.setUint32(22, raw.length, true); lh.setUint16(26, nb.length, true);
+    parts.push(new Uint8Array(lh.buffer), nb, comp);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, method, true);
+    ch.setUint16(12, dt, true); ch.setUint16(14, dd, true); ch.setUint32(16, crc, true); ch.setUint32(20, comp.length, true); ch.setUint32(24, raw.length, true);
+    ch.setUint16(28, nb.length, true); ch.setUint32(42, off, true);
+    central.push(new Uint8Array(ch.buffer), nb);
+    off += 30 + nb.length + comp.length;
+  }
+  const cds = central.reduce((a, b) => a + b.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true); end.setUint32(12, cds, true); end.setUint32(16, off, true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+const xmlEsc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F￾￿]/g, '');
+function colName(n) { let s = ''; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
+function StyleBook() {
+  const fonts = ['<font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/></font>'];
+  const fills = ['<fill><patternFill patternType="none"/></fill>', '<fill><patternFill patternType="gray125"/></fill>'];
+  const borders = ['<border><left/><right/><top/><bottom/><diagonal/></border>', '<border><left style="thin"><color auto="1"/></left><right style="thin"><color auto="1"/></right><top style="thin"><color auto="1"/></top><bottom style="thin"><color auto="1"/></bottom><diagonal/></border>'];
+  const xfs = ['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'];
+  const fm = new Map(), flm = new Map(), xm = new Map();
+  const font = ({ name = 'Calibri', sz = 11, b = false, color = 'FF000000' } = {}) => {
+    const k = [name, sz, b, color].join('|');
+    if (!fm.has(k)) { fm.set(k, fonts.length); fonts.push(`<font>${b ? '<b/>' : ''}<sz val="${sz}"/><color rgb="${color}"/><name val="${xmlEsc(name)}"/></font>`); }
+    return fm.get(k);
+  };
+  const fill = rgb => {
+    if (!rgb) return 0;
+    if (!flm.has(rgb)) { flm.set(rgb, fills.length); fills.push(`<fill><patternFill patternType="solid"><fgColor rgb="FF${rgb}"/><bgColor indexed="64"/></patternFill></fill>`); }
+    return flm.get(rgb);
+  };
+  const xf = (o = {}) => {
+    const fi = font(o.font), fl = fill(o.fill), bd = o.border ? 1 : 0;
+    const al = (o.h || o.v || o.wrap) ? `<alignment${o.h ? ` horizontal="${o.h}"` : ''}${o.v ? ` vertical="${o.v}"` : ''}${o.wrap ? ' wrapText="1"' : ''}/>` : '';
+    const k = [fi, fl, bd, al].join('|');
+    if (!xm.has(k)) { xm.set(k, xfs.length); xfs.push(`<xf numFmtId="0" fontId="${fi}" fillId="${fl}" borderId="${bd}" xfId="0" applyFont="1"${fl ? ' applyFill="1"' : ''}${bd ? ' applyBorder="1"' : ''}${al ? ` applyAlignment="1">${al}</xf>` : '/>'}`); }
+    return xm.get(k);
+  };
+  const xml = () => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="${fonts.length}">${fonts.join('')}</fonts><fills count="${fills.length}">${fills.join('')}</fills><borders count="${borders.length}">${borders.join('')}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfs.join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  return { xf, xml };
+}
+function sheetXml(sh) {
+  let x = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
+  x += '<sheetViews><sheetView workbookViewId="0"' + (sh.rtl ? ' rightToLeft="1"' : '') + '>' + (sh.freeze ? `<pane ySplit="${sh.freeze}" topLeftCell="A${sh.freeze + 1}" activePane="bottomLeft" state="frozen"/>` : '') + '</sheetView></sheetViews>';
+  x += '<sheetFormatPr defaultRowHeight="15"/>';
+  if (sh.cols) x += '<cols>' + sh.cols.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('') + '</cols>';
+  x += '<sheetData>';
+  sh.rows.forEach((row, ri) => {
+    if (!row) return;
+    const r = ri + 1;
+    x += `<row r="${r}"${row.ht ? ` ht="${row.ht}" customHeight="1"` : ''}>`;
+    row.cells.forEach((c, ci) => {
+      if (!c) return;
+      const ref = colName(ci + 1) + r; const s = c.s ? ` s="${c.s}"` : '';
+      if (c.f) x += `<c r="${ref}"${s}><f>${xmlEsc(c.f)}</f>${c.v != null ? `<v>${c.v}</v>` : ''}</c>`;
+      else if (c.v == null || c.v === '') x += `<c r="${ref}"${s}/>`;
+      else if (typeof c.v === 'number' && isFinite(c.v)) x += `<c r="${ref}"${s}><v>${c.v}</v></c>`;
+      else x += `<c r="${ref}"${s} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(c.v)}</t></is></c>`;
+    });
+    x += '</row>';
+  });
+  x += '</sheetData>';
+  if (sh.merges && sh.merges.length) x += `<mergeCells count="${sh.merges.length}">${sh.merges.map(m => `<mergeCell ref="${m}"/>`).join('')}</mergeCells>`;
+  x += '<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>';
+  return x;
+}
+async function buildXlsx(sheets, book) {
+  const head = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  const files = [];
+  files.push({ name: '[Content_Types].xml', data: head + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' + sheets.map((s, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('') + '</Types>' });
+  files.push({ name: '_rels/.rels', data: head + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' });
+  files.push({ name: 'xl/workbook.xml', data: head + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="16000" windowHeight="9000"/></bookViews><sheets>' + sheets.map((s, i) => `<sheet name="${xmlEsc(s.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('') + '</sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>' });
+  files.push({ name: 'xl/_rels/workbook.xml.rels', data: head + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + sheets.map((s, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join('') + `<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` });
+  sheets.forEach((s, i) => files.push({ name: `xl/worksheets/sheet${i + 1}.xml`, data: sheetXml(s) }));
+  files.push({ name: 'xl/styles.xml', data: book.xml() });
+  return makeZip(files);
+}
+
+/* =====================================================================
+   8. Import from the four Excel files
+   ===================================================================== */
+const isRoomNo = v => typeof v === 'number' ? Number.isFinite(v) && v > 0 : /^\s*\d{1,4}\s*$/.test(normDigits(v ?? ''));
+function detectSheet(sh) {
+  for (let r = 1; r <= 8; r++) {
+    const f = (sh.rows[r] || []).map(v => clean(v));
+    const has = re => f.some(v => re.test(v));
+    if (has(/عدد\s*الاسر[ةه]/) && has(/رقم\s*الغرف/)) return { kind: 'beds', hr: r };
+    if (has(/Employee\s*No/i) && has(/Car\s*No/i)) return { kind: 'workers-w', hr: r };
+    if (has(/^الاسماء$/) && has(/الرقم\s*الوظيفي/)) return { kind: 'workers-a', hr: r };
+    if (has(/Employee\s*No|الرقم\s*الوظيفي/) && has(/Name|الاسم/)) return { kind: has(/Car\s*No|رقم\s*السيار/) ? 'workers-w' : 'workers-a', hr: r };
+  }
+  return null;
+}
+function parseBedsSheet(sh, hr) {
+  const list = [], footer = [];
+  for (let r = hr + 1; r < sh.rows.length; r++) {
+    const row = sh.rows[r]; if (!row) continue;
+    if (isRoomNo(row[1])) {
+      const n = Number(normDigits(row[1]));
+      const C = row[3]; const beds = (C == null || C === 0 || clean(C) === '0') ? '' : clean(C);
+      const nat = clean(row[5]), notes = clean(row[6]), G = row[7];
+      const blocked = /ممنوع/.test(nat + ' ' + notes);
+      const cond = COND_RE.test(notes);
+      const cap = parseBeds(beds).cap;
+      const util = (cap === 0 && typeof G === 'string' && clean(G) && !/^\d/.test(clean(G))) ? { nat, notes, extra: clean(G) } : null;
+      list.push({ n, beds, note: (!blocked && cond) ? notes : '', names: !!notes && !cond && !blocked, blocked, util, persons: Number(normDigits(row[2])) || 0 });
+    } else {
+      for (const v of row) if (typeof v === 'string') { const t = clean(v); if (t && !/^المجموع/.test(t) && !/^\(?\s*\d+\s*-\s*double/i.test(t)) footer.push(t); }
+    }
+  }
+  const seen = new Set();
+  return { list: list.filter(r => (seen.has(r.n) ? false : seen.add(r.n))), footer: footer.join(' | ') };
+}
+function parseWorkersSheet(sh, hr, h) {
+  const out = [];
+  for (let r = hr + 1; r < sh.rows.length; r++) {
+    const row = sh.rows[r]; if (!row || !isRoomNo(row[1])) continue;
+    let rec;
+    if (h === 'w') rec = { room: row[1], name: row[2], code: row[3], emp: row[4], car: row[5], model: row[6], iq: row[7], dept: row[8], job: row[9], nat: row[10], notes: row[11] };
+    else rec = { room: row[1], code: row[2], name: row[3], emp: row[4], iq: row[5], dept: row[6], job: row[7], nat: row[8], notes: row[9] };
+    const codeRaw = rec.code;
+    const code = (codeRaw == null || clean(codeRaw) === '') ? null : (Number(normDigits(codeRaw)) ? 1 : 0);
+    const w = { h, room: Number(normDigits(rec.room)), code, name: clean(rec.name), emp: idText(rec.emp), iq: idText(rec.iq), dept: clean(rec.dept), job: clean(rec.job), nat: clean(rec.nat), notes: clean(rec.notes), ord: r };
+    if (h === 'w') { w.car = idText(rec.car); w.model = clean(rec.model); }
+    if (!w.name && !w.emp && !w.iq && code == null) continue;
+    if (code == null && !w.emp && !w.iq) w.label = true;
+    out.push(w);
+  }
+  return out;
+}
+async function readImportFiles(files) {
+  const items = [];
+  for (const f of files) {
+    const it = { name: f.name, size: f.size };
+    try {
+      const sheets = await readXlsx(await f.arrayBuffer());
+      let det = null, sh = null;
+      for (const s of sheets) { const d = detectSheet(s); if (d) { det = d; sh = s; break; } }
+      if (!det) it.err = 'ما عرفت وش هذا الجدول';
+      else {
+        it.kind = det.kind;
+        if (det.kind === 'beds') it.beds = parseBedsSheet(sh, det.hr);
+        else it.workers = parseWorkersSheet(sh, det.hr, det.kind === 'workers-w' ? 'w' : 'a');
+      }
+    } catch (e) { console.warn(e); it.err = e && e.message === 'nostream' ? 'المتصفح قديم، ما يقدر يفتح ملفات الإكسل' : 'ما قدرت أفتح الملف'; }
+    items.push(it);
+  }
+  assignSlots(items);
+  return items;
+}
+function assignSlots(items) {
+  for (const it of items) if (!it.userSlot) { if (it.kind === 'workers-w') it.slot = 'Ww'; else if (it.kind === 'workers-a') it.slot = 'Wa'; }
+  const beds = items.filter(it => it.kind === 'beds' && !it.userSlot);
+  const ww = items.find(it => it.slot === 'Ww'), wa = items.find(it => it.slot === 'Wa');
+  const score = (b, w) => {
+    if (!w) return null;
+    const c = {}; for (const x of w.workers) if (x.code === 1 && !x.label) c[x.room] = (c[x.room] || 0) + 1;
+    let hit = 0; for (const r of b.beds.list) if ((c[r.n] || 0) === (r.persons ?? -1)) hit++;
+    return hit / Math.max(1, b.beds.list.length);
+  };
+  if (beds.length === 1) {
+    const b = beds[0]; const sw = score(b, ww), sa = score(b, wa);
+    const taken = items.find(it => it !== b && it.slot && it.slot[0] === 'B');
+    b.slot = taken ? (taken.slot === 'Bw' ? 'Ba' : 'Bw') : (sw != null && sa != null) ? (sw >= sa ? 'Bw' : 'Ba') : sw != null ? (sw >= 0.5 ? 'Bw' : 'Ba') : sa != null ? (sa >= 0.5 ? 'Ba' : 'Bw') : (b.beds.list.length >= 40 ? 'Bw' : 'Ba');
+  } else if (beds.length >= 2) {
+    const [b1, b2] = beds;
+    const s1 = (score(b1, ww) ?? (b1.beds.list.length >= 40 ? 1 : 0)) + (1 - (score(b1, wa) ?? (b1.beds.list.length >= 40 ? 1 : 0)));
+    const s2 = (score(b2, ww) ?? (b2.beds.list.length >= 40 ? 1 : 0)) + (1 - (score(b2, wa) ?? (b2.beds.list.length >= 40 ? 1 : 0)));
+    if (s1 >= s2) { b1.slot = 'Bw'; b2.slot = 'Ba'; } else { b1.slot = 'Ba'; b2.slot = 'Bw'; }
+    for (const b of beds.slice(2)) b.slot = 'skip';
+  }
+}
+const SLOT_NAMES = { Ww: 'سكن العمال — جدول العمال', Bw: 'سكن العمال — جدول السراير', Wa: 'السكن الإداري — جدول العمال', Ba: 'السكن الإداري — جدول السراير', skip: 'تجاهل هذا الملف' };
+function buildImport(items) {
+  const res = { rooms: {}, workers: {}, n: 0 };
+  for (const it of items) {
+    if (it.err || !it.slot || it.slot === 'skip') continue;
+    const h = it.slot[1];
+    if (it.slot[0] === 'B') { if (!it.beds) continue; res.rooms[h] = it.beds; }
+    else { if (!it.workers) continue; res.workers[h] = it.workers.map(w => ({ ...w, h, ...(h === 'w' ? { car: w.car ?? 'Non', model: w.model ?? 'Non' } : {}) })); res.n += it.workers.length; }
+  }
+  return res;
+}
+async function runImport(data) {
+  const r = await call('import', { payload: { rooms: data.rooms, workers: data.workers } });
+  setData(r.data);
+}
+
+/* =====================================================================
+   9. Export: rebuild the four tables
+   ===================================================================== */
+function bedsRows(h) {
+  return rooms(h).map(r => {
+    if (r.util) return { n: r.n, p: 0, beds: r.beds || 0, free: 0, nat: r.util.nat || 'غرفة فارغة', notes: r.util.notes || '', extra: r.util.extra || 0, empty: true, util: true };
+    const nat = r.blocked ? 'ممنوع التسكين' : (r.p ? natSummary(r) : 'غرفة فارغة');
+    const names = r.names ? r.present.map(w => shortName(w.name)).filter(Boolean).join(' / ') : '';
+    const notes = r.blocked ? 'ممنوع التسكين' : [names, r.note, r.phantom ? 'الغرفة مو موجودة في جدول السراير' : ''].filter(Boolean).join(' | ');
+    return { n: r.n, p: r.p, beds: r.beds || 0, free: r.free, nat, notes, extra: extraText(r.extra), empty: r.p === 0, x: r.extra };
+  });
+}
+function workerCells(h, w) {
+  const code = w.label ? '' : (w.code === 1 ? 1 : 0);
+  if (h === 'w') return [w.room, w.name, code, numOrStr(w.emp), numOrStr(w.car), w.model, numOrStr(w.iq), w.dept, w.job, w.nat, w.notes];
+  return [w.room, code, w.name, numOrStr(w.emp), numOrStr(w.iq), w.dept, w.job, w.nat, w.notes];
+}
+function workersSheetSpec(h, book, name) {
+  const W = h === 'w';
+  const TNR = { name: 'Times New Roman', sz: 18, b: true, color: 'FF1F497D' };
+  const base = { border: true, h: 'left', v: 'center' };
+  const st = {
+    title: book.xf({ font: { name: 'Arial', sz: 17, b: true }, fill: 'BFBFBF', h: 'center', v: 'center' }),
+    head: W ? book.xf({ font: { name: 'Arial', sz: 15, b: true, color: 'FFFFFFFF' }, fill: 'BFBFBF', border: true, h: 'left', v: 'center', wrap: true })
+            : book.xf({ font: TNR, fill: 'BFBFBF', border: true, h: 'center', v: 'center' }),
+    room: W ? book.xf({ font: { name: 'Arial', sz: 11, b: true }, fill: 'BFBFBF', ...base }) : book.xf({ font: TNR, fill: 'BFBFBF', ...base }),
+    cell: book.xf({ font: TNR, fill: 'FFFFFF', ...base }),
+    grey: book.xf({ font: TNR, fill: 'BFBFBF', ...base }),
+    label: book.xf({ font: TNR, fill: '8BB2E3', ...base }),
+    sum: book.xf({ font: { name: 'Arial', sz: 18, b: true }, h: 'center', v: 'center' }),
+  };
+  const greyCols = W ? [0, 4, 5, 10] : [0, 1, 7, 8];
+  const ncol = W ? 11 : 9, ht = W ? 26.25 : 22.5;
+  const rows = [];
+  const t = new Array(ncol).fill(null); t[W ? 7 : 5] = { v: `${H[h].title} ${todayStr()}`, s: st.title };
+  rows.push({ ht: 30, cells: t });
+  rows.push({ ht, cells: HEAD[h].map(v => ({ v, s: st.head })) });
+  const list = workersOf(h);
+  for (const w of list) {
+    const vals = workerCells(h, w);
+    rows.push({ ht, cells: vals.map((v, i) => ({ v, s: w.label ? st.label : (i === 0 ? st.room : greyCols.includes(i) ? st.grey : st.cell) })) });
+  }
+  const last = 2 + list.length; const col = W ? 'C' : 'B';
+  const sum = new Array(ncol).fill(null);
+  sum[W ? 2 : 1] = { f: `SUM(${col}3:${col}${last})`, v: list.filter(w => !w.label && w.code === 1).length, s: st.sum };
+  rows.push({ ht, cells: sum });
+  return { name, cols: COLS[h], rows, freeze: 2 };
+}
+function bedsSheetSpec(h, book, name) {
+  const cell = (fill, regular) => book.xf({ font: regular ? { sz: 11 } : { sz: 11, b: true, color: 'FF3F3F3F' }, fill, border: true, h: 'center', v: 'center' });
+  const head = book.xf({ font: { sz: 14, b: true }, fill: 'B1C5E7', border: true, h: 'center', v: 'center', wrap: true });
+  const rows = [{ ht: 38, cells: BEDS_HEAD.map(v => ({ v, s: head })) }];
+  const list = bedsRows(h); let fd = 0, fs = 0, free = 0;
+  for (const r of list) {
+    const fill = r.empty ? H[h].emptyFill : 'BFBFBF';
+    rows.push({ ht: 18, cells: [r.n, r.p, r.beds, r.free, r.nat, r.notes, r.extra].map((v, i) => ({ v, s: cell(fill, i === 6) })) });
+    if (!r.util) { fd += r.x ? r.x.fd : 0; fs += r.x ? r.x.fs : 0; free += r.free; }
+  }
+  const last = list.length + 1;
+  const tot = book.xf({ font: { sz: 11, b: true, color: 'FFFFFFFF' }, fill: 'A5A5A5', border: true, h: 'center', v: 'center' });
+  rows.push(null);
+  const r1 = new Array(7).fill(null); r1[4] = { v: 'المجموع:', s: book.xf({ font: { sz: 18, b: true }, h: 'center', v: 'center' }) }; r1[6] = { v: `(${fd}-Double / ${fs}-single)`, s: tot };
+  const r2 = new Array(7).fill(null); r2[3] = { f: `SUM(D2:D${last})`, v: free, s: tot };
+  rows.push({ ht: 24, cells: r1 }, { ht: 20, cells: r2 });
+  const foot = S.rooms[h]?.footer;
+  if (foot) { const r3 = new Array(7).fill(null); r3[5] = { v: foot, s: book.xf({ font: { sz: 11 }, fill: 'BFBFBF', h: 'center' }) }; rows.push(null, { cells: r3 }); }
+  return { name, cols: [13.9, 13, 18, 15.5, h === 'w' ? 27.1 : 18, 30, 18.5], rows, freeze: 1 };
+}
+async function exportBlob(which) {
+  const book = StyleBook(); const sheets = [];
+  if (which === 'all') {
+    for (const h of ['w', 'a']) { sheets.push(workersSheetSpec(h, book, H[h].sheetW)); sheets.push(bedsSheetSpec(h, book, H[h].sheetB)); }
+  } else {
+    const [kind, h] = which.split(':');
+    sheets.push(kind === 'W' ? workersSheetSpec(h, book, 'Sheet1') : bedsSheetSpec(h, book, 'Sheet1'));
+  }
+  return buildXlsx(sheets, book);
+}
+/* Send the updated Excel: one file with the four tables, shared to WhatsApp or saved on the phone. */
+const XLSX_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+let SEND = null;
+function openSend() {
+  if (SEND) return;
+  SEND = { state: 'prep', file: null, err: '', done: false };
+  Sheets.push({ onClose: () => { SEND = null; }, render: sendView });
+  prepSend();
+}
+async function prepSend() {
+  if (!SEND) return;
+  SEND.state = 'prep'; SEND.err = ''; SEND.done = false; Sheets.redraw();
+  try {
+    const r = await call('load');          // latest data, in case someone else changed it
+    setData(r.data);
+    const blob = await exportBlob('all');
+    if (!SEND) return;
+    SEND.file = new File([blob], `جداول السكن ${isoDay()}.xlsx`, { type: XLSX_TYPE });
+    SEND.state = 'ready';
+  } catch (e) {
+    console.warn('send', e);
+    if (!SEND) return;
+    SEND.state = 'err';
+    SEND.err = e && e.code ? errText(e) : 'ما قدرت أجهّز الملف. جرّب مرة ثانية.';
+  }
+  Sheets.redraw();
+}
+function canShareFile(f) {
+  try { return !!(f && navigator.share && navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) { return false; }
+}
+function saveFile(f) {
+  const url = URL.createObjectURL(f);
+  const a = document.createElement('a');
+  a.href = url; a.download = f.name; a.rel = 'noopener'; a.style.display = 'none';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+async function sendGo() {
+  const f = SEND && SEND.file; if (!f) return;
+  if (!SEND.done && canShareFile(f)) {
+    try {
+      await navigator.share({ files: [f] });
+      if (SEND) { Sheets.pop(); toast('تم الإرسال'); }
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;   // closed the share menu
+      console.warn('share', e);                   // not allowed here: save the file instead
+    }
+  }
+  saveFile(f);
+  if (SEND) { SEND.done = true; Sheets.redraw(); }
+}
+const kbText = n => n < 1024 ? `${n} B` : `${Math.round(n / 1024)} KB`;
+function sendView() {
+  const title = `${ICON.send}إرسال الإكسل`;
+  if (!SEND || SEND.state === 'prep') {
+    return { title, body: `<div class="center"><div class="spin"></div><p class="lead">جاري تجهيز الملف…</p><p class="muted">يجيب آخر البيانات من الجدول</p></div>` };
+  }
+  if (SEND.state === 'err') {
+    return { title, body: `<div class="center"><p class="lead" style="margin-top:24px">${esc(SEND.err)}</p></div>`,
+      foot: `<button class="big neutral" data-act="send-retry">${ICON.history}<span>جرّب مرة ثانية</span></button>` };
+  }
+  const f = SEND.file;
+  const n = [...S.workers.values()].filter(w => !w.label && w.code === 1).length;
+  const share = !SEND.done && canShareFile(f);
+  const card = `<div class="xfile"><span class="xl">${ICON.table}</span><div class="grow"><b>جداول السكن <bdi dir="ltr">${esc(f.name.replace(/^جداول السكن /, ''))}</bdi></b><small>الجداول الأربعة · ${n} ساكن · ${kbText(f.size)}</small></div></div>`;
+  const steps = `<p class="lead center" style="margin:18px 0 0">${ICON.check} الملف نزل في جوالك</p>
+    <p class="muted center" style="margin:4px 0 0">أرسله في القروب كذا:</p>
+    <div class="wa-steps" aria-label="افتح القروب، اضغط المشبك، اختر مستند، اختر الملف">
+      <div class="st"><span class="em">💬</span><small>افتح القروب</small></div><span class="ar">←</span>
+      <div class="st"><span class="em">📎</span><small>المشبك أو ＋</small></div><span class="ar">←</span>
+      <div class="st"><span class="em">📄</span><small>مستند</small></div><span class="ar">←</span>
+      <div class="st"><span class="em">📊</span><small>اختر الملف</small></div>
+    </div>`;
+  return {
+    title,
+    body: card + (SEND.done ? steps : `<p class="muted center" style="margin-top:14px">${share ? 'اضغط «إرسال» واختر واتساب ثم القروب.' : 'اضغط «تنزيل»، وبعدها أرسله من واتساب.'}</p>`),
+    foot: SEND.done
+      ? `<button class="big ghost" data-act="send-go">${ICON.download}<span>تنزيل مرة ثانية</span></button>`
+      : `<button class="big go" data-act="send-go">${share ? ICON.send : ICON.download}<span>${share ? 'إرسال' : 'تنزيل'}</span></button>`,
+  };
+}
+
+/* =====================================================================
+   10. Reading a group message (Claude, or simple rules when Claude is not available)
+   ===================================================================== */
+const LABELS = [
+  ['emp', /(?:الرقم\s*الوظيف[يى]|رقم\s*(?:ال)?وظيف[ةهيى]|الرقم\s*الوظيفى|كود\s*(?:ال)?موظف|رقم\s*(?:ال)?موظف|emp(?:loyee)?\.?\s*(?:no|number|id|#|code)\.?|staff\s*(?:no|id)|job\s*(?:no|number))/],
+  ['iq', /(?:رقم\s*(?:ال)?[اإ]قام[ةه]|(?:ال)?[اإ]قام[ةه]|iqam[ah]*\.?\s*(?:no|number)?|resident\s*id|id\s*no)/],
+  ['room', /(?:رقم\s*(?:ال)?غرف[ةه]|(?:ال)?غرف[ةه]|room\s*(?:no|number)?)/],
+  ['car', /(?:رقم\s*(?:ال)?سيار[ةه]|car\s*(?:no|number)|vehicle\s*no)/],
+  ['model', /(?:نوع\s*(?:ال)?سيار[ةه]|car\s*model|model)/],
+  ['nat', /(?:(?:ال)?جنسي[ةه]|nationality)/],
+  ['dept', /(?:(?:ال)?قسم|(?:ال)?[اإ]دار[ةه]|department|dept)/],
+  ['job', /(?:(?:ال)?مهن[ةه]|(?:ال)?مسم[ىي]\s*(?:ال)?وظيف[يى]|(?:ال)?مسم[ىي]|(?:ال)?وظيف[ةه]|profession|job\s*title|job|work|position|designation|trade)/],
+  ['name', /(?:(?:ال)?[اإ]سم(?:\s*(?:ال)?(?:عامل|موظف|رباعي|كامل))?|(?:full|employee|worker|staff)\s*name|name)/],
+  ['housing', /(?:(?:ال)?سكن)/],
+  ['from', /(?:جاي\s*من|قادم\s*من|from)/],
+];
+const LINE_RES = LABELS.map(([k, re]) => [k, new RegExp('^(?:[^\\p{L}\\p{N}]*\\d{1,2}\\s*[-.)]\\s*)?[^\\p{L}\\p{N}]*' + re.source + '\\s*[:：\\-–=/]*\\s*(.*)$', 'iu')]);
+function blankDraft() { return { name: '', emp: '', iq: '', nat: '', job: '', dept: '', room: null, h: null, from: '', car: '', model: '', exit: null, site: '', ret: '' }; }
+function localParse(text) {
+  const t = clean(normDigits(text)).replace(/\r/g, '');
+  const lines = normDigits(String(text || '')).split(/\n+/).map(clean).filter(Boolean);
+  const blocks = []; let cur = { lines: [], keys: new Set() };
+  for (const line of lines) {
+    let key = null, val = '';
+    for (const [k, re] of LINE_RES) { const m = line.match(re); if (m) { key = k; val = (m[m.length - 1] || '').trim(); break; } }
+    if (key && key !== 'housing' && key !== 'from' && cur.keys.has(key)) { blocks.push(cur); cur = { lines: [], keys: new Set() }; }
+    if (key) cur.keys.add(key);
+    cur.lines.push({ line, key, val });
+  }
+  blocks.push(cur);
+  const drafts = blocks.filter(b => b.lines.length).map(b => parseBlock(b, t));
+  const good = drafts.filter(d => d.emp || d.iq || d.name);
+  const exitHint = /اجاز|إجاز|خروج|خرج|اخلاء|إخلاء|طالع|سافر|نزل\s*اجاز|vacation|leave|exit|go\s*to/i.test(t);
+  return { action: exitHint ? 'exit' : 'add', drafts: good.length ? good : drafts.slice(0, 1) };
+}
+function parseBlock(b, whole) {
+  const d = blankDraft(); const used = new Set();
+  b.lines.forEach((it, i) => {
+    if (!it.key) return;
+    const v = it.val;
+    switch (it.key) {
+      case 'emp': { const m = v.match(/\d[\d-]*/); if (m && !d.emp) { d.emp = m[0]; used.add(i); } break; }
+      case 'iq': { const m = v.match(/\d{9,10}/); if (m && !d.iq) { d.iq = m[0]; used.add(i); } break; }
+      case 'room': { const m = v.match(/\d{1,3}/); if (m && d.room == null) { d.room = +m[0]; used.add(i); } if (/اداري|إداري|admin/i.test(v)) d.h = 'a'; break; }
+      case 'car': { const m = v.match(/\d+/); if (m) d.car = m[0]; used.add(i); break; }
+      case 'model': if (v) { d.model = v; used.add(i); } break;
+      case 'nat': if (v) { d.nat = canonNat(v) || v; used.add(i); } break;
+      case 'dept': if (v) { d.dept = v; used.add(i); } break;
+      case 'job': if (v) { d.job = canonJob(v) || v; used.add(i); } break;
+      case 'name': if (v && !d.name) { d.name = v.replace(/[\d:]+$/, '').trim(); used.add(i); } break;
+      case 'housing': { if (/اداري|إداري|admin/i.test(v)) d.h = 'a'; else if (/عمال|labou?r|worker/i.test(v)) d.h = 'w'; const m = v.match(/(?:غرف[ةه]|room)\s*(?:رقم|no\.?)?\s*[:#]?\s*(\d{1,3})/i); if (m && d.room == null) d.room = +m[1]; used.add(i); break; }
+      case 'from': { const s = findSite(v); if (s) d.from = s.from; used.add(i); break; }
+    }
+  });
+  const text = b.lines.map(x => x.line).join('\n');
+  if (!d.iq) { const m = text.match(/(?<!\d)[12]\d{9}(?!\d)/); if (m) d.iq = m[0]; }
+  if (d.room == null) { const m = text.match(/(?:غرف[ةه]|room)\s*(?:رقم|no\.?|number)?\s*[:#]?\s*(\d{1,3})(?!\d)/i); if (m) d.room = +m[1]; }
+  if (!d.nat) { for (const it of b.lines) { const k = canonNat(it.line); if (k) { d.nat = k; break; } } }
+  if (!d.job) {
+    const free = b.lines.filter((it, i) => !used.has(i) && !/عامل\s*جديد|new\s*(worker|employee)|خروج|دخول/i.test(it.line));
+    for (const it of free) { const k = canon(JOB_IX, it.line, false); if (k) { d.job = k.k; break; } }
+    if (!d.job) for (const it of free) { const k = canon(JOB_IX, it.line, true); if (k && it.line.length < 40) { d.job = k.k; break; } }
+  }
+  if (!d.emp) {
+    const c = []; b.lines.forEach((it, i) => { if (used.has(i)) return; for (const m of it.line.matchAll(/(?<![\d/.\-])\d{2,5}(?![\d/.\-])/g)) if (m[0] !== d.iq && +m[0] !== d.room && !/^20\d\d$/.test(m[0])) c.push(m[0]); });
+    if (c.length === 1) d.emp = c[0];
+  }
+  if (!d.name) {
+    const cand = b.lines.filter((it, i) => !used.has(i) && !it.key).map(it => it.line.replace(/[^\p{L}\s.'-]/gu, '').trim())
+      .filter(s => s && s.split(/\s+/).length >= 2 && s.split(/\s+/).length <= 5 && s.length <= 40 && !canonNat(s) && !canon(JOB_IX, s, true) && !/سكن|غرف|عامل|جديد|اقام|إقام|وظيف|جنسي|مهن|السلام|عليكم|صباح|مساء|تحي|new|room|please/i.test(s));
+    d.name = cand.find(s => /[a-z]/i.test(s)) || cand[0] || '';
+  }
+  if (!d.from) { const s = findSite(text); if (s && /جاي|قادم|from|من/.test(text)) d.from = s.from; }
+  if (!d.h) { if (/السكن\s*(ال)?[اإ]داري|admin\s*hous/i.test(whole)) d.h = 'a'; else if (/سكن\s*العمال|labou?r\s*camp|workers?\s*hous/i.test(whole)) d.h = 'w'; }
+  return d;
+}
+function findSite(text) {
+  const n = normAr(text);
+  for (const s of SITES) for (const a of s.al) if (n.includes(normAr(a))) return s;
+  return null;
+}
+async function imageToB64(file) {
+  let bmp = null;
+  try { bmp = await createImageBitmap(file); } catch (e) { bmp = null; }
+  if (!bmp) {
+    const u8 = new Uint8Array(await file.arrayBuffer()); let s = '';
+    for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+    return { b64: btoa(s), mime: file.type || 'image/jpeg' };
+  }
+  const k = Math.min(1, 2000 / Math.max(bmp.width, bmp.height));
+  const cv = document.createElement('canvas'); cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+  const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(bmp, 0, 0, cv.width, cv.height);
+  return { b64: cv.toDataURL('image/jpeg', 0.9).split(',')[1], mime: 'image/jpeg' };
+}
+async function readMessage({ text, image }) {
+  if (image) {
+    const img = await imageToB64(image);
+    const r = await call('ocr', img);
+    const t = String(r.text || '').replace(/﻿/g, '');
+    if (!clean(t)) throw { code: 'ocrempty' };
+    return localParse(t);
+  }
+  return localParse(text);
+}
+
+/* =====================================================================
+   11. Matching and room suggestions
+   ===================================================================== */
+function findMatches(d, onlyPresent = false) {
+  const emp = idNorm(d.emp), iq = idNorm(d.iq);
+  const nameN = normAr(displayName(d.name));
+  const res = [];
+  for (const w of S.workers.values()) {
+    if (w.label || (onlyPresent && w.code !== 1)) continue;
+    let sc = 0;
+    if (emp && idNorm(w.emp) === emp) sc += 10;
+    if (iq && idNorm(w.iq) === iq) sc += 10;
+    if (!sc && nameN.length >= 5 && !emp && !iq) { const wn = normAr(displayName(w.name)); if (wn === nameN) sc += 4; else if (wn.startsWith(nameN) || nameN.startsWith(wn)) sc += 2; }
+    if (sc) res.push({ w, sc });
+  }
+  return res.sort((a, b) => b.sc - a.sc || (b.w.code || 0) - (a.w.code || 0) || (b.w.ord || 0) - (a.w.ord || 0)).map(x => x.w);
+}
+function enrich(d) {
+  const m = findMatches(d)[0] || null;
+  if (m) {
+    for (const k of ['name', 'emp', 'iq', 'nat', 'job', 'dept']) if (!d[k] && m[k]) d[k] = k === 'name' ? displayName(m.name) : m[k];
+    if (!d.h) d.h = m.h;
+    if (!d.car && m.car) d.car = m.car; if (!d.model && m.model) d.model = m.model;
+  }
+  if (!d.dept && d.job) d.dept = deptForJob(d.job);
+  d.match = m;
+  return d;
+}
+function suggestRooms(h, d) {
+  const nat = canonNat(d.nat);
+  return rooms(h).filter(r => r.available).map(r => {
+    const same = nat ? (r.nat[nat] || 0) : 0; const others = r.p - same;
+    let sc = r.free + same * 20 - others * 6 + (r.p === 0 ? 3 : 0);
+    if (d.room && r.n === d.room && (d.h || h) === h) sc += 1000;
+    return { r, sc };
+  }).sort((a, b) => b.sc - a.sc || a.r.n - b.r.n);
+}
+
+/* =====================================================================
+   12. Saving changes
+   ===================================================================== */
+function cleanVals(o) { const v = { ...o }; for (const k of ['id', 'sig', 'row', 'ord', 't', 'by', 'match', '_autoDept']) delete v[k]; return v; }
+async function commit(act, w, after) {
+  S.busy = true;
+  try {
+    const vals = cleanVals(after);
+    const r = await call('put', { act, h: w ? w.h : null, row: w ? w.row : null, sig: w ? w.sig : null, vals });
+    setData(r.data);
+    return { act, undo: r.undo, after: vals };
+  } finally { S.busy = false; }
+}
+async function saveAdd(d, h, room) {
+  const date = todayStr(); const m = d.match;
+  const lastNote = m ? clean(String(m.notes || '').split('|').pop()) : '';
+  const entry = d.from ? `جاي من ${d.from} دخل السكن بتاريخ ${date}`
+    : (m && m.code !== 1 && /[اإ]جاز/.test(lastNote)) ? `رجع من الإجازة ودخل السكن بتاريخ ${date}` : `دخل السكن بتاريخ ${date}`;
+  const sameSpot = m && m.h === h && m.room === room;
+  if (m && m.code === 1) {
+    if (sameSpot) return null;
+    const before = plainWorker(m);
+    const where = m.h !== h ? `${H[m.h].name} غرفة ${m.room}` : `غرفة ${m.room}`;
+    return commit('move', m, { ...before, h, room, ord: nextOrd(h), notes: appendNote(m.notes, `نُقل من ${where} بتاريخ ${date}`) });
+  }
+  if (m) {
+    const before = plainWorker(m);
+    const after = { ...before, h, room, code: 1, name: addCheck(m.name || d.name), ord: sameSpot ? m.ord : nextOrd(h), notes: appendNote(m.notes, entry) };
+    for (const k of ['emp', 'iq', 'nat', 'job', 'dept']) if (!after[k] && d[k]) after[k] = d[k];
+    if (h === 'w') { after.car = after.car || d.car || 'Non'; after.model = after.model || d.model || 'Non'; }
+    return commit('return', m, after);
+  }
+  const after = { h, room, code: 1, name: addCheck(d.name), emp: d.emp || '', iq: d.iq || '', dept: d.dept || '', job: d.job || '', nat: d.nat || '', notes: entry, ord: nextOrd(h) };
+  if (h === 'w') { after.car = d.car || 'Non'; after.model = d.model || 'Non'; }
+  return commit('add', null, after);
+}
+function reasonNote(reason, site, ret) {
+  const date = todayStr();
+  if (reason === 'vacation') return ret ? `خرج إجازة تنتهي إجازته قبل يوم ( ${ret} )` : `خرج إجازة بتاريخ ${date}`;
+  if (reason === 'site') { const s = SITES.find(x => x.ar === site); return s ? `${s.note} بتاريخ ${date}` : `راح موقع ثاني بتاريخ ${date}`; }
+  if (reason === 'outside') return `ساكن برا السكن بتاريخ ${date}`;
+  if (reason === 'final') return `إخلاء طرف خروج بتاريخ ${date}`;
+  return `ليس موجود بالسكن بتاريخ ${date}`;
+}
+async function saveExit(w, reason, site, ret) {
+  const before = plainWorker(w);
+  return commit('exit', w, { ...before, code: 0, name: stripCheck(w.name), notes: appendNote(w.notes, reasonNote(reason, site, ret)) });
+}
+async function saveMove(w, h, room) {
+  const before = plainWorker(w); const date = todayStr();
+  const where = w.h !== h ? `${H[w.h].name} غرفة ${w.room}` : `غرفة ${w.room}`;
+  return commit('move', w, { ...before, h, room, ord: nextOrd(h), notes: appendNote(w.notes, `نُقل من ${where} بتاريخ ${date}`) });
+}
+async function undoResult(res) {
+  if (!res || !res.undo) return false;
+  S.busy = true;
+  try { const r = await call('undo', { undo: res.undo }); setData(r.data); return true; }
+  catch (e) { toast(e && e.code === 'changed' ? 'ما أقدر أتراجع: بيانات العامل تغيّرت بعدها' : errText(e)); return false; }
+  finally { S.busy = false; }
+}
+
+/* =====================================================================
+   13. Home screen
+   ===================================================================== */
+let renderQueued = false;
+function changed() {
+  S.cache = {};
+  if (renderQueued) return; renderQueued = true;
+  requestAnimationFrame(() => { renderQueued = false; render(); });
+}
+function render() {
+  renderTop(); renderMain();
+  $('#bar').hidden = !(S.ready && S.mode === 'gs' && hasData());
+  if ($('#send-top')) $('#send-top').hidden = !(S.ready && S.mode === 'gs' && hasData());
+  Sheets.refresh();
+}
+function hasData() { return S.workers.size > 0 || !!(S.rooms.w || S.rooms.a); }
+function renderTop() {
+  const top = $('#top');
+  if (!top.dataset.built) {
+    top.innerHTML = `<div class="brand"><span class="logo">${ICON.bed}</span><div class="grow"><h1>جداول السكن</h1><p class="sub" id="sub"></p></div>
+      <button class="send-btn" id="send-top" data-act="send-xlsx" aria-label="إرسال الإكسل" hidden>${ICON.send}<span>إكسل</span></button><button class="icon-btn" data-act="menu" aria-label="القائمة">${ICON.menu}</button></div>
+      <div id="top-dyn"></div>
+      <div class="tools" id="tools"><label class="search" for="q">${ICON.search}<input id="q" type="search" inputmode="search" placeholder="رقم وظيفي، إقامة، أو اسم" autocomplete="off"></label>
+      <button class="chip" id="only-free" data-act="onlyFree" aria-pressed="false">${ICON.bed}<span>فيها مكان</span></button></div>
+      <div id="top-banner"></div>`;
+    top.dataset.built = '1';
+    $('#q').addEventListener('input', e => { S.q = e.target.value; renderMain(); });
+  }
+  const ready = hasData() && S.mode !== 'loading' && S.ready;
+  $('#tools').hidden = !ready;
+  $('#sub').textContent = S.mode === 'loading' || !S.ready ? 'جاري التحميل…' : `اليوم ${todayStr()}`;
+  const dyn = $('#top-dyn');
+  if (!ready) { dyn.innerHTML = ''; } else {
+    const t = { w: totals('w'), a: totals('a') }; const c = t[S.h];
+    dyn.innerHTML = `<div class="hswitch" role="tablist" aria-label="السكن">${['w', 'a'].map(h => `
+      <button role="tab" aria-selected="${S.h === h}" class="htab ${S.h === h ? 'on' : ''}" data-act="housing" data-h="${h}" style="--hc:var(--h-${h})">
+        <span class="hico">${ICON.building}</span><span class="hname">${H[h].name}</span><span class="hfree" aria-label="أماكن فاضية">${ICON.bed}<span class="num">${t[h].free}</span></span></button>`).join('')}</div>
+      <div class="stats">
+        <div class="stat"><b class="num">${c.present}</b><span>ساكن الحين</span></div>
+        <div class="stat free"><b class="num">${c.free}</b><span>سرير فاضي</span></div>
+        <div class="stat"><b class="num">${c.roomsFree}</b><span>غرفة فيها مكان</span></div>
+        ${c.over ? `<div class="stat warn"><b class="num">${c.over}</b><span>زيادة عن السراير</span></div>` : ''}
+      </div>`;
+  }
+  const fb = $('#only-free'); fb.classList.toggle('on', S.onlyFree); fb.setAttribute('aria-pressed', String(S.onlyFree));
+  $('#top-banner').innerHTML = S.stale ? `<div class="banner warn">${ICON.alert}<div>ما قدرت أجيب آخر البيانات. تأكد من الإنترنت، وبعدها اضغط ☰ ثم «تحديث».</div></div>` : '';
+}
+function dotsHtml(r, extraNew = 0) {
+  const out = []; const p = r.p, cap = r.cap;
+  for (let i = 0; i < Math.min(p, cap); i++) out.push('<i class="d on"></i>');
+  for (let i = 0; i < Math.max(0, p - cap); i++) out.push('<i class="d over"></i>');
+  let free = Math.max(0, cap - p);
+  for (let i = 0; i < extraNew && free > 0; i++, free--) out.push('<i class="d new"></i>');
+  for (let i = 0; i < extraNew - Math.max(0, cap - p); i++) out.push('<i class="d new"></i>');
+  for (let i = 0; i < free; i++) out.push('<i class="d free"></i>');
+  return out.join('');
+}
+function flagsHtml(r) { return Object.entries(r.nat).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => `<span class="emoji">${NAT_BY[k] ? NAT_BY[k].f : ''}</span>`).join(''); }
+function roomTile(r, opt = {}) {
+  let cls = 'room', inner = '';
+  if (r.util) { cls += ' util'; inner = `<span class="tag">${ICON.wrench}${esc(r.util.extra || 'خدمات')}</span>`; }
+  else if (r.blocked) { cls += ' blocked'; inner = `<span class="tag">${ICON.ban}ممنوع</span>`; }
+  else { if (r.over) cls += ' over'; else if (r.free > 0) cls += ' has-free'; inner = `<span class="dots">${dotsHtml(r)}</span><span class="cnt num">${r.p}/${r.cap || '?'}</span>`; }
+  if (opt.sugg) cls += ' pick-sugg';
+  const label = `غرفة ${r.n}: ${r.util ? 'خدمات' : r.blocked ? 'ممنوع التسكين' : `${r.p} من ${r.cap}، فاضي ${r.free}`}`;
+  return `<button class="${cls}" data-act="${opt.act || 'room'}" data-h="${r.h}" data-n="${r.n}" aria-label="${esc(label)}">
+    ${opt.sugg ? `<span class="star">${ICON.star}</span>` : ''}<span class="flags">${r.util || r.blocked ? '' : flagsHtml(r)}</span>
+    <span class="rn">${r.n}</span>${inner}</button>`;
+}
+function renderMain() {
+  const main = $('#main');
+  if (S.mode === 'loading' || !S.ready) { if (!main.querySelector('.loading')) main.innerHTML = '<div class="loading"><div class="spin"></div>جاري التحميل…</div>'; return; }
+  if (!hasData()) { main.innerHTML = emptyView(); return; }
+  if (S.q.trim()) { main.innerHTML = searchView(S.q); return; }
+  let list = rooms(S.h);
+  if (S.onlyFree) list = list.filter(r => r.available);
+  main.innerHTML = list.length ? `<div class="grid">${list.map(r => roomTile(r)).join('')}</div>` : `<div class="empty-note">ما فيه غرف فيها مكان في ${H[S.h].name}.</div>`;
+}
+function emptyView() {
+  return `<div class="card" style="margin-top:12px">
+    <p class="lead" style="margin-top:0">آخر خطوة: ارفع ملفات الإكسل الأربعة</p>
+    <p class="muted">جدول عمال سكن العمال، وجدول سرايره، وجدول السكن الإداري، وجدول سرايره. الصفحة تعرف كل ملف لحالها، وتكتبها في ملف Google Sheets.</p>
+    <button class="big neutral" style="width:100%" data-act="import-pick">${ICON.upload}<span>اختيار الملفات</span></button></div>`;
+}
+function workerRow(w, act = 'worker') {
+  const r = roomOf(w.h, w.room);
+  return `<button class="wrow ${w.code === 1 ? '' : 'gone'}" data-act="${act}" data-id="${esc(w.id)}">
+    <span class="flag emoji">${natFlag(w.nat)}</span>
+    <span class="wb"><span class="wn">${esc(displayName(w.name) || '—')}</span>
+      <span class="ws"><span class="num">${esc(w.emp || '—')}</span> · ${esc(jobInfo(w.job)?.ar || '')}${w.code === 1 ? '' : ' · خارج السكن'}</span></span>
+    <span class="rbadge">${H[w.h].name === 'السكن الإداري' ? 'إداري ' : ''}<span class="num">${w.room}</span></span></button>`;
+}
+function searchView(q) {
+  const n = normAr(q), dg = idNorm(q);
+  const res = [...S.workers.values()].filter(w => !w.label && ((dg && (idNorm(w.emp).includes(dg) || idNorm(w.iq).includes(dg))) || (n.length >= 2 && normAr(displayName(w.name)).includes(n))))
+    .sort((a, b) => (b.code || 0) - (a.code || 0) || a.room - b.room).slice(0, 60);
+  return res.length ? `<div class="list">${res.map(w => workerRow(w)).join('')}</div>` : `<div class="empty-note">ما لقيت أحد بهذا الرقم أو الاسم.</div>`;
+}
+
+/* =====================================================================
+   14. Sheets (full-screen panels)
+   ===================================================================== */
+const Sheets = {
+  stack: [],
+  push(spec) {
+    if (!this.stack.length) { const s = document.createElement('div'); s.id = 'scrim'; s.dataset.act = 'closeAll'; $('#sheets').append(s); document.body.style.overflow = 'hidden'; }
+    const el = document.createElement('section'); el.className = 'sheet' + (spec.wide ? ' wide' : '');
+    el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
+    $('#sheets').append(el); this.stack.push({ spec, el }); this.draw(this.stack.length - 1);
+    setTimeout(() => { const f = el.querySelector('[autofocus]') || el.querySelector('.sh-head button'); f && f.focus({ preventScroll: true }); }, 30);
+  },
+  draw(i) {
+    const { spec, el } = this.stack[i]; const v = spec.render();
+    const keepScroll = el.querySelector('.sh-body')?.scrollTop || 0;
+    el.innerHTML = `<div class="sh-head ${v.tone || ''}">${spec.noBack ? '' : `<button class="icon-btn" data-act="back" aria-label="رجوع">${ICON.back}</button>`}<h2>${v.title}</h2>${v.steps || ''}</div>
+      <div class="sh-body">${v.body}</div>${v.foot ? `<div class="sh-foot ${v.footCls || ''}">${v.foot}</div>` : ''}`;
+    if (spec.keepScroll) el.querySelector('.sh-body').scrollTop = keepScroll;
+    spec.after && spec.after(el);
+  },
+  top() { return this.stack[this.stack.length - 1]; },
+  redraw() { if (this.stack.length) this.draw(this.stack.length - 1); },
+  refresh() { const t = this.top(); if (t && t.spec.live) { t.spec.keepScroll = true; this.draw(this.stack.length - 1); } },
+  pop() {
+    const t = this.stack.pop(); if (!t) return;
+    if (t.spec.onClose) t.spec.onClose();
+    t.el.remove();
+    if (!this.stack.length) { $('#scrim')?.remove(); document.body.style.overflow = ''; }
+    else this.refresh();
+  },
+  closeAll() { while (this.stack.length) this.pop(); },
+};
+
+/* =====================================================================
+   15. Flows: entering, leaving, moving
+   ===================================================================== */
+let F = null;
+function startFlow(kind, opts = {}) {
+  F = { kind, hist: [], h: opts.h || S.h, room: opts.room ?? null, queue: [], qi: 0, d: opts.d || null, w: opts.w || null, kp: '', reason: null, site: '', ret: '', showAll: false, res: null, text: '', busyCtl: null, preset: opts };
+  Sheets.push({ render: flowView, onClose: () => { if (F && F.busyCtl) F.busyCtl.abort?.(); F = null; } });
+  go(opts.step || 'method');
+}
+function go(step) { if (!F) return; F.hist.push(step); Sheets.redraw(); }
+function flowBack() { if (!F) return Sheets.pop(); if (F.hist[F.hist.length - 1] === 'done') { Sheets.closeAll(); return; } F.hist.pop(); if (!F.hist.length || F.hist[F.hist.length - 1] === 'reading') { Sheets.pop(); return; } Sheets.redraw(); }
+function stepsDots(n, i) { return `<span class="steps" aria-hidden="true">${Array.from({ length: n }, (_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</span>`; }
+function flowTitle() {
+  if (F.kind === 'add') return { title: `${ICON.in}دخول عامل`, tone: 'in' };
+  if (F.kind === 'exit') return { title: `${ICON.out}خروج عامل`, tone: 'out' };
+  if (F.kind === 'move') return { title: `${ICON.move}نقل لغرفة ثانية`, tone: '' };
+  return { title: `${ICON.in}رجوع للسكن`, tone: 'in' };
+}
+function flowView() {
+  const step = F.hist[F.hist.length - 1]; const t = flowTitle();
+  const v = (STEP[step] || STEP.method)();
+  return { ...t, ...v };
+}
+const STEP = {
+  method() {
+    const add = F.kind === 'add';
+    return {
+      steps: stepsDots(4, 0),
+      body: `<div class="tiles">
+        <button class="tile acc" data-act="m-paste">${ICON.paste}<span>لصق الرسالة</span><small>من القروب</small></button>
+        ${S.imgOk ? `<button class="tile acc" data-act="m-photo">${ICON.camera}<span>صورة الرسالة</span><small>سكرين شوت</small></button>` : ''}
+        <button class="tile acc" data-act="m-keypad">${ICON.keypad}<span>${add ? 'أرقام' : 'الرقم الوظيفي'}</span><small>${add ? 'الرقم الوظيفي والإقامة' : 'أو رقم الإقامة'}</small></button>
+        ${add ? '' : `<button class="tile acc" data-act="m-room">${ICON.door}<span>من الغرفة</span><small>اختر الغرفة ثم العامل</small></button>`}
+      </div>`,
+    };
+  },
+  paste() {
+    return {
+      steps: stepsDots(4, 0),
+      body: `<textarea id="paste-box" class="paste" placeholder="الصق الرسالة هنا" aria-label="الرسالة" autofocus>${esc(F.text)}</textarea>
+        <div class="hint">${ICON.paste}<span>اضغط مطولاً داخل المربع واختر «لصق».</span></div>`,
+      foot: `<button class="big neutral" data-act="read-text">${ICON.check}<span>قراءة</span></button>`,
+    };
+  },
+  reading() {
+    return { body: `<div class="center"><div class="spin"></div><p class="lead">جاري قراءة الرسالة…</p><p class="muted">ثواني بس</p></div>` };
+  },
+  keypad() {
+    const add = F.kind === 'add'; const val = F.kp;
+    const hits = kpHits(idNorm(val), !add, add);
+    const lbl = F.kpField === 'iq' ? `${ICON.idcard}رقم الإقامة` : F.kpField === 'car' ? `${ICON.car}رقم السيارة` : F.kpField === 'room' ? `${ICON.door}رقم الغرفة` : `${ICON.hash}${add ? 'الرقم الوظيفي' : 'الرقم الوظيفي أو الإقامة'}`;
+    return {
+      steps: stepsDots(4, add ? 1 : 0),
+      body: `<div class="kp-label">${lbl}</div>
+        <div class="kp-show" aria-live="polite">${val ? esc(val) : '<span class="ph">– – – –</span>'}</div>
+        <div class="kp-keys">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button class="key" data-act="kp" data-k="${n}">${n}</button>`).join('')}
+          <button class="key del" data-act="kp" data-k="del" aria-label="مسح رقم">⌫</button><button class="key" data-act="kp" data-k="0">0</button>
+          <button class="key ok" data-act="kp" data-k="ok" aria-label="تم">${ICON.check}</button></div>
+        ${(!F.kpField || F.kpField === 'emp') && hits.length ? `<div class="sec-title" style="margin-top:16px">${ICON.user}هذا هو؟</div><div class="list">${hits.map(w => workerRow(w, 'kp-pick')).join('')}</div>` : ''}`,
+    };
+  },
+  review() {
+    const d = F.d; const W = (d.h || F.h) === 'w';
+    const job = jobInfo(d.job);
+    const fld = (k, icon, label, value, miss) => `<button class="field ${miss ? 'missing' : ''}" data-act="edit-f" data-f="${k}"><span class="fi">${icon}</span>
+      <span class="fb"><span class="fl">${label}</span><span class="fv">${value || '<span class="muted">—</span>'}</span></span><span class="pen">${ICON.edit}</span></button>`;
+    const m = d.match;
+    const banner = m ? (m.code === 1
+      ? `<div class="match present">${ICON.alert}<span>هذا العامل ساكن الحين في ${H[m.h].name} غرفة <b class="num">${m.room}</b>. لو كمّلت ينتقل للغرفة الجديدة.</span></div>`
+      : `<div class="match absent">${ICON.info}<span>هذا العامل كان في ${H[m.h].name} غرفة <b class="num">${m.room}</b> وطلع. بيرجع للسكن.</span></div>`) : '';
+    const q = F.queue.length > 1 ? `<p class="muted center" style="margin:0 0 10px">العامل <span class="num">${F.qi + 1}</span> من <span class="num">${F.queue.length}</span></p>` : '';
+    return {
+      steps: stepsDots(4, 1),
+      body: `${q}${banner}<div class="card"><div class="whead"><span class="flag emoji">${natFlag(d.nat)}</span><div><div class="wname">${esc(d.name || 'بدون اسم')}</div><div class="wsub">${job ? `<span class="emoji">${job.e}</span> ${esc(job.ar)}` : ''}</div></div></div>
+        <div class="fields">
+          ${fld('emp', ICON.hash, 'الرقم الوظيفي', d.emp ? `<span class="num">${esc(d.emp)}</span>` : '', !d.emp && !d.iq)}
+          ${fld('iq', ICON.idcard, 'رقم الإقامة', d.iq ? `<span class="num">${esc(d.iq)}</span>` : '', !d.emp && !d.iq)}
+          ${fld('nat', ICON.globe, 'الجنسية', d.nat ? `<span class="emoji">${natFlag(d.nat)}</span> ${esc(natAr(d.nat))}` : '', !d.nat)}
+          ${fld('job', ICON.briefcase, 'المهنة', job ? `<span class="emoji">${job.e}</span> ${esc(job.ar)} <span class="muted">${esc(d.job)}</span>` : '', !d.job)}
+          ${fld('name', ICON.user, 'الاسم', d.name ? `<span dir="ltr">${esc(d.name)}</span>` : '', !d.name)}
+          ${fld('dept', ICON.layers, 'القسم', esc(d.dept), false)}
+          ${W ? fld('car', ICON.car, 'السيارة', carText(d.car, d.model), false) : ''}
+        </div></div>`,
+      foot: `<button class="big neutral" data-act="to-room" ${!d.emp && !d.iq ? 'disabled' : ''}>${ICON.door}<span>${m && m.code === 1 ? 'اختر الغرفة الجديدة' : 'اختر الغرفة'}</span></button>`,
+    };
+  },
+  pickfield() {
+    const f = F.editField; const d = F.d;
+    if (f === 'nat') {
+      const top = [...new Set([...topValues('nat', 12).map(v => canonNat(v)).filter(Boolean), ...NATS.slice(0, 10).map(n => n.k)])];
+      const rest = NATS.filter(n => !top.includes(n.k));
+      const opt = n => `<button class="opt ${canonNat(d.nat) === n.k ? 'sel' : ''}" data-act="pick-val" data-v="${esc(n.k)}"><span class="emoji">${n.f}</span>${esc(n.ar)}</button>`;
+      return { body: `<div class="chooser">${top.map(k => opt(NAT_BY[k])).join('')}</div><details class="more"><summary>جنسيات ثانية</summary><div class="chooser">${rest.map(opt).join('')}</div></details>` };
+    }
+    if (f === 'job') {
+      const top = [...new Set([...topValues('job', 18, F.h).map(v => canonJob(v) || v), ...JOBS.map(j => j.k)])];
+      const opt = k => { const j = jobInfo(k); return `<button class="opt ${(canonJob(d.job) || d.job) === k ? 'sel' : ''}" data-act="pick-val" data-v="${esc(k)}"><span class="emoji">${j.e}</span>${esc(j.ar)}<small dir="ltr">${esc(k)}</small></button>`; };
+      return { body: `<div class="chooser">${top.slice(0, 18).map(opt).join('')}</div><details class="more"><summary>مهن ثانية</summary><div class="chooser">${top.slice(18).map(opt).join('')}</div></details>` };
+    }
+    if (f === 'dept') {
+      const opts = [...new Set([deptForJob(d.job), ...topValues('dept', 30, F.h)].filter(Boolean))];
+      return { body: `<div class="chooser">${opts.map(v => `<button class="opt ${d.dept === v ? 'sel' : ''}" data-act="pick-val" data-v="${esc(v)}"><span dir="ltr">${esc(v)}</span></button>`).join('')}</div>
+        <div class="form" style="margin-top:16px"><label for="f-dept-other">أو اكتب القسم<input id="f-dept-other" class="ltr" value=""></label><button class="big ghost" data-act="pick-typed" data-src="f-dept-other">${ICON.check}<span>تم</span></button></div>` };
+    }
+    if (f === 'name') {
+      return { body: `<div class="form"><label for="f-name">الاسم بالإنجليزي<input id="f-name" class="ltr" value="${esc(d.name)}" autocomplete="off" autofocus></label></div>`,
+        foot: `<button class="big neutral" data-act="pick-typed" data-src="f-name">${ICON.check}<span>تم</span></button>` };
+    }
+    if (f === 'car') {
+      return { body: `<div class="form"><label for="f-car">رقم السيارة<input id="f-car" inputmode="numeric" value="${esc(d.car === 'Non' ? '' : d.car)}"></label></div>
+        <div class="sec-title">نوع السيارة</div><div class="chooser">${MODELS.map(v => `<button class="opt ${d.model === v ? 'sel' : ''}" data-act="pick-model" data-v="${esc(v)}"><span dir="ltr">${v === 'Non' ? 'بدون سيارة' : esc(v)}</span></button>`).join('')}</div>`,
+        foot: `<button class="big neutral" data-act="pick-typed" data-src="f-car">${ICON.check}<span>تم</span></button>` };
+    }
+    return { body: '' };
+  },
+  room() {
+    const d = F.d || {}; const h = F.h;
+    const sugg = F.kind === 'exit' ? [] : suggestRooms(h, d);
+    const top3 = sugg.slice(0, 3).map(x => x.r.n);
+    let list = rooms(h).filter(r => F.kind === 'exit' ? r.p > 0 : (F.showAll ? true : r.available));
+    if (F.w && F.kind === 'move') list = list.filter(r => !(r.h === F.w.h && r.n === F.w.room));
+    const wanted = d.room ? roomOf(d.h || h, d.room) : null;
+    const warn = wanted && F.kind !== 'exit' && !wanted.available && (d.h || h) === h ? `<div class="warnbox">${ICON.alert}<span>الرسالة تقول غرفة <b class="num">${wanted.n}</b> بس ${wanted.blocked ? 'ممنوع التسكين فيها' : 'ما فيها سرير فاضي'}. اختر غرفة ثانية أو اضغط «كل الغرف».</span></div>` : '';
+    return {
+      steps: stepsDots(4, 2),
+      body: `<div class="hswitch" role="tablist" style="margin-top:0">${['w', 'a'].map(x => `<button role="tab" aria-selected="${x === h}" class="htab ${x === h ? 'on' : ''}" data-act="flow-h" data-h="${x}" style="--hc:var(--h-${x})"><span class="hico">${ICON.building}</span><span class="hname">${H[x].name}</span>${F.kind === 'exit' ? '' : `<span class="hfree">${ICON.bed}<span class="num">${totals(x).free}</span></span>`}</button>`).join('')}</div>
+        ${warn}
+        ${top3.length ? `<div class="sec-title" style="margin-top:16px">${ICON.star}مقترحة</div><div class="grid">${sugg.slice(0, 3).map(x => roomTile(x.r, { act: 'pick-room', sugg: true })).join('')}</div>` : ''}
+        <div class="sec-title" style="margin-top:16px">${ICON.door}${F.kind === 'exit' ? 'اختر الغرفة' : F.showAll ? 'كل الغرف' : 'غرف فيها مكان'}</div>
+        ${list.length ? `<div class="grid">${list.filter(r => !top3.includes(r.n)).map(r => roomTile(r, { act: 'pick-room' })).join('')}</div>` : '<div class="empty-note">ما فيه غرف.</div>'}
+        ${F.kind === 'exit' ? '' : `<button class="chip ${F.showAll ? 'on' : ''}" style="margin-top:14px" data-act="show-all">${F.showAll ? 'غرف فيها مكان بس' : 'كل الغرف'}</button>`}`,
+    };
+  },
+  roomworkers() {
+    const r = roomOf(F.h, F.room);
+    return { steps: stepsDots(4, 1), body: `<div class="sec-title">${ICON.door}غرفة <span class="num">${F.room}</span></div><div class="list">${(r ? r.present : []).map(w => workerRow(w, 'pick-worker')).join('') || '<div class="empty-note">الغرفة فاضية.</div>'}</div>` };
+  },
+  pick() {
+    const list = F.cands || [];
+    return {
+      steps: stepsDots(4, 1),
+      body: list.length ? `<p class="lead" style="margin-top:0">مين اللي طالع؟</p><div class="list">${list.map(w => workerRow(w, 'pick-worker')).join('')}</div>`
+        : `<div class="card center"><p class="lead">ما لقيت العامل في السكن</p><p class="muted">جرّب بالرقم الوظيفي أو من الغرفة.</p></div>`,
+      foot: list.length ? '' : `<button class="big neutral" data-act="m-keypad">${ICON.keypad}<span>بالرقم</span></button>`,
+    };
+  },
+  reason() {
+    const w = F.w;
+    return {
+      steps: stepsDots(4, 2),
+      body: `${miniWorker(w)}<p class="lead">وين راح؟</p><div class="tiles">${REASONS.map(r => `<button class="tile out ${F.reason === r.k ? 'sel' : ''}" data-act="pick-reason" data-k="${r.k}">${ICON[r.icon]}<span>${r.ar}</span></button>`).join('')}</div>`,
+    };
+  },
+  site() {
+    return { steps: stepsDots(4, 2), body: `${miniWorker(F.w)}<p class="lead">أي موقع؟</p><div class="chooser">${SITES.map(s => `<button class="opt ${F.site === s.ar ? 'sel' : ''}" data-act="pick-site" data-v="${esc(s.ar)}"><span class="emoji">📍</span>${esc(s.ar)}</button>`).join('')}</div>` };
+  },
+  vacation() {
+    return {
+      steps: stepsDots(4, 2),
+      body: `${miniWorker(F.w)}<div class="form"><label for="f-ret">متى تخلص الإجازة؟ (اختياري)<input id="f-ret" type="date" value="${esc(F.retIso || '')}"></label></div>`,
+      foot: `<button class="big ghost" data-act="vac-skip">ما أدري</button><button class="big neutral" data-act="vac-ok">${ICON.check}<span>تم</span></button>`, footCls: 'two',
+    };
+  },
+  confirm() {
+    if (F.kind === 'exit') {
+      const w = F.w; const rs = REASONS.find(r => r.k === F.reason);
+      return {
+        steps: stepsDots(4, 3),
+        body: `<div class="confirm">${miniWorker(w)}<div class="arrow">${ICON.back}</div>
+          <div class="bigroom" style="border-color:var(--out)">${ICON[rs.icon]}<b style="font-size:20px">${rs.ar}${F.site ? ` — ${esc(F.site)}` : ''}</b>${F.ret ? `<span class="muted">ترجع قبل <span class="num">${esc(F.ret)}</span></span>` : ''}</div>
+          <p class="muted" style="margin:0">ينشال من غرفة <b class="num">${w.room}</b> ويصير سريره فاضي.</p></div>`,
+        foot: `<button class="big out" data-act="save">${ICON.check}<span>تسجيل الخروج</span></button>`,
+      };
+    }
+    const r = roomOf(F.h, F.room); const d = F.d || {}; const w = F.w;
+    const who = w ? w : { name: d.name, nat: d.nat, emp: d.emp, job: d.job };
+    const full = r && !r.available;
+    return {
+      steps: stepsDots(4, 3),
+      body: `<div class="confirm">${miniWorker(who)}<div class="arrow">${ICON.back}</div>
+        <div class="bigroom"><span class="muted">${H[F.h].name}</span><span class="rn num">${F.room}</span><span class="dots">${r ? dotsHtml(r, 1) : ''}</span></div>
+        ${full ? `<div class="warnbox">${ICON.alert}<span>${r.blocked ? 'هذي الغرفة ممنوع التسكين فيها.' : 'هذي الغرفة ما فيها سرير فاضي. بيصير فيها زيادة.'}</span></div>` : ''}</div>`,
+      foot: `<button class="big in" data-act="save">${ICON.check}<span>حفظ</span></button>`,
+    };
+  },
+  done() {
+    const res = F.res; const exit = F.kind === 'exit';
+    const more = F.queue.length > F.qi + 1;
+    const a = res && res.after;
+    return {
+      body: `<div class="done"><div class="okmark ${exit ? 'out' : ''}">${ICON.check}</div>
+        <div class="lead">${exit ? 'تم تسجيل الخروج' : 'تم الحفظ'}</div>
+        ${a ? `<div class="big-n">${exit ? 'السرير صار فاضي في غرفة' : 'غرفة'} <span class="num">${a.room}</span></div><div class="muted">${H[a.h].name}</div>` : ''}
+        ${res ? `<button class="small-btn" data-act="undo-last">${ICON.undo}تراجع</button>` : ''}</div>`,
+      foot: more ? `<button class="big neutral" data-act="next-q">${ICON.user}<span>العامل التالي (<span class="num">${F.qi + 2}</span> من <span class="num">${F.queue.length}</span>)</span></button>`
+        : `<button class="big ghost" data-act="closeAll">${ICON.home}<span>رجوع للغرف</span></button>`,
+    };
+  },
+  error() {
+    return {
+      body: `<div class="card center"><p class="lead">${esc(F.err || 'صار خطأ')}</p></div>`,
+      foot: `<button class="big ghost" data-act="back">${ICON.back}<span>رجوع</span></button>`,
+    };
+  },
+};
+function kpHits(val, onlyPresent, exactOnly) {
+  if (val.length < 3) return [];
+  const out = [];
+  for (const w of S.workers.values()) {
+    if (w.label || (onlyPresent && w.code !== 1)) continue;
+    const e = idNorm(w.emp), q = idNorm(w.iq); let sc = 0;
+    if (e === val || q === val) sc = 3; else if (!exactOnly && e.startsWith(val)) sc = 2; else if (!exactOnly && val.length >= 5 && q.startsWith(val)) sc = 1;
+    if (sc) out.push([sc, w]);
+  }
+  return out.sort((a, b) => b[0] - a[0] || (b[1].code || 0) - (a[1].code || 0)).slice(0, 5).map(x => x[1]);
+}
+function miniWorker(w) {
+  if (!w) return '';
+  const j = jobInfo(w.job);
+  return `<div class="wrow" style="cursor:default"><span class="flag emoji">${natFlag(w.nat)}</span><span class="wb"><span class="wn">${esc(displayName(w.name) || 'بدون اسم')}</span>
+    <span class="ws"><span class="num">${esc(w.emp || w.iq || '')}</span>${j ? ` · <span class="emoji">${j.e}</span> ${esc(j.ar)}` : ''}</span></span>${w.room != null && w.h ? `<span class="rbadge num">${w.room}</span>` : ''}</div>`;
+}
+async function readAndContinue(input) {
+  go('reading');
+  try {
+    const res = await readMessage(input);
+    if (!F) return;
+    F.hist.pop();
+    if (F.kind === 'add') {
+      if (!res.drafts.length) { F.err = 'ما قدرت أقرأ بيانات عامل من الرسالة'; go('error'); return; }
+      if (res.action === 'exit' && res.ai) toast('الرسالة شكلها عن خروج، تأكد إنك ضغطت الزر الصح');
+      F.queue = res.drafts.map(enrich); F.qi = 0; F.d = F.queue[0];
+      if (F.d.h) F.h = F.d.h;
+      go('review');
+    } else {
+      const cands = []; for (const d of res.drafts) for (const w of findMatches(d, true)) if (!cands.includes(w)) cands.push(w);
+      F.cands = cands; const d0 = res.drafts[0];
+      if (d0 && d0.exit) { F.reason = d0.exit; F.site = d0.site || ''; F.ret = d0.ret || ''; }
+      if (cands.length === 1) { F.w = cands[0]; go(F.reason ? (F.reason === 'site' && !F.site ? 'site' : 'confirm') : 'reason'); }
+      else go('pick');
+    }
+  } catch (e) {
+    if (!F) return; F.hist.pop();
+    F.err = e && (e.code === 'ocrempty' || e.code === 'ocr') ? 'ما قدرت أقرأ الصورة. جرّب «لصق الرسالة» أو «الأرقام».' : e && (e.code === 'net' || e.code === 'nogs') ? 'ما فيه اتصال بالإنترنت. جرّب مرة ثانية.' : 'ما قدرت أقرأ الرسالة. جرّب مرة ثانية أو استخدم الأرقام.';
+    go('error');
+  }
+}
+function kpDone() {
+  const v = F.kp; if (!v) return;
+  const field = F.kpField || 'emp';
+  if (F.kind === 'add' && F.d && F.kpReturn) { F.d[field] = field === 'room' ? +v : v; if (field === 'emp' || field === 'iq') enrich(F.d); F.kpField = null; F.kpReturn = false; F.hist.pop(); Sheets.redraw(); return; }
+  if (F.kind === 'add') {
+    const d = blankDraft(); if (v.length >= 9) d.iq = v; else d.emp = v;
+    F.queue = [enrich(d)]; F.qi = 0; F.d = F.queue[0]; if (F.d.h) F.h = F.d.h;
+    go('review'); return;
+  }
+  const d = blankDraft(); if (v.length >= 9) d.iq = v; else d.emp = v;
+  F.cands = findMatches(d, true);
+  if (F.cands.length === 1) { F.w = F.cands[0]; go('reason'); } else go('pick');
+}
+async function flowSave() {
+  if (!F || F.saving) return; F.saving = true;
+  busy(true, 'جاري الحفظ…');
+  try {
+    let res = null;
+    if (F.kind === 'exit') res = await saveExit(F.w, F.reason, F.site, F.ret);
+    else if (F.kind === 'move' || F.kind === 'return') res = F.kind === 'move' ? await saveMove(F.w, F.h, F.room) : await saveAdd({ ...blankDraft(), match: F.w }, F.h, F.room);
+    else res = await saveAdd(F.d, F.h, F.room);
+    if (!res) { toast('العامل ساكن في هذي الغرفة من قبل'); Sheets.pop(); return; }
+    F.res = res; chime();
+    go('done');
+  } catch (e) { console.warn(e); toast(errText(e)); }
+  finally { busy(false); if (F) F.saving = false; }
+}
+
+/* =====================================================================
+   16. Room and worker panels
+   ===================================================================== */
+function openRoom(h, n) {
+  Sheets.push({ live: true, render() {
+    const r = roomOf(h, n);
+    if (!r) return { title: `غرفة ${n}`, body: '<div class="empty-note">الغرفة مو موجودة.</div>' };
+    const cap = r.util ? `<span class="tag">${ICON.wrench}${esc(r.util.extra)}</span>` : `<div class="bigroom" style="border-color:${r.blocked ? 'var(--idle)' : r.over ? 'var(--warn)' : r.free ? 'var(--in)' : 'var(--line)'}">
+      <span class="rn num">${r.n}</span><span class="dots">${dotsHtml(r)}</span>
+      <span><b class="num">${r.p}</b> ساكن · <b class="num">${r.cap}</b> سرير${r.free ? ` · <b class="num" style="color:var(--in)">${r.free}</b> فاضي` : ''}</span>
+      <span class="muted" dir="ltr">${esc(r.beds || '—')}</span></div>`;
+    const notes = [r.blocked ? 'ممنوع التسكين' : '', r.note, r.phantom ? 'هذي الغرفة مو موجودة في جدول السراير' : '', r.over ? `فيها ${r.over} زيادة عن عدد السراير` : ''].filter(Boolean);
+    const editBtn = S.canWrite ? `<button class="small-btn" data-act="room-edit" data-h="${h}" data-n="${n}">${ICON.edit}تعديل الغرفة</button>` : '';
+    return {
+      title: `${ICON.door}غرفة <span class="num">${n}</span> <span class="muted" style="font-size:15px">${H[h].name}</span>`,
+      body: `<div class="center" style="display:grid;justify-items:center;gap:8px">${cap}</div>
+        ${notes.length ? `<div class="warnbox">${ICON.info}<span>${notes.map(esc).join(' · ')}</span></div>` : ''}
+        ${r.labels.length ? `<div class="banner info">${ICON.wrench}<div>${r.labels.map(l => esc(l.name || l.notes)).join(' · ')}</div></div>` : ''}
+        <div class="sec-title">${ICON.user}الساكنين الحين (<span class="num">${r.p}</span>)</div>
+        <div class="list">${r.present.map(w => workerRow(w)).join('') || '<div class="empty-note">الغرفة فاضية.</div>'}</div>
+        ${r.absent.length ? `<details class="more"><summary>سكنوا فيها قبل (${r.absent.length})</summary><div class="list">${r.absent.map(w => workerRow(w)).join('')}</div></details>` : ''}
+        <div style="margin-top:14px">${editBtn}</div>`,
+      foot: S.canWrite && r.available ? `<button class="big in" data-act="add-here" data-h="${h}" data-n="${n}">${ICON.plus}<span>دخول عامل لهذي الغرفة</span></button>` : '',
+    };
+  } });
+}
+function openWorker(id) {
+  Sheets.push({ live: true, render() {
+    const w = S.workers.get(id);
+    if (!w) return { title: 'العامل', body: '<div class="empty-note">انحذف هذا السجل.</div>' };
+    const j = jobInfo(w.job);
+    const row = (icon, label, val) => `<div class="field static"><span class="fi">${icon}</span><span class="fb"><span class="fl">${label}</span><span class="fv">${val || '<span class="muted">—</span>'}</span></span></div>`;
+    const acts = !S.canWrite ? '' : w.code === 1
+      ? `<button class="big out" data-act="w-exit" data-id="${esc(id)}">${ICON.out}<span>خروج</span></button><button class="big neutral" data-act="w-move" data-id="${esc(id)}">${ICON.move}<span>نقل غرفة</span></button>`
+      : `<button class="big in" data-act="w-return" data-id="${esc(id)}" style="grid-column:1/-1">${ICON.in}<span>رجوع للسكن</span></button>`;
+    return {
+      title: `${ICON.user}العامل`,
+      body: `<div class="card"><div class="whead"><span class="flag emoji">${natFlag(w.nat)}</span><div><div class="wname">${esc(displayName(w.name) || '—')}</div>
+        <div class="wsub">${w.code === 1 ? `<span class="status in">${ICON.check}ساكن</span>` : '<span class="status out">خارج السكن</span>'} · ${H[w.h].name} غرفة <b class="num">${w.room}</b></div></div></div>
+        <div class="fields">
+          ${row(ICON.hash, 'الرقم الوظيفي', w.emp ? `<span class="num">${esc(w.emp)}</span>` : '')}
+          ${row(ICON.idcard, 'رقم الإقامة', w.iq ? `<span class="num">${esc(w.iq)}</span>` : '')}
+          ${row(ICON.globe, 'الجنسية', w.nat ? `<span class="emoji">${natFlag(w.nat)}</span> ${esc(natAr(w.nat))} <span class="muted">${esc(w.nat)}</span>` : '')}
+          ${row(ICON.briefcase, 'المهنة', j ? `<span class="emoji">${j.e}</span> ${esc(j.ar)} <span class="muted">${esc(w.job)}</span>` : '')}
+          ${row(ICON.layers, 'القسم', esc(w.dept))}
+          ${w.h === 'w' ? row(ICON.car, 'السيارة', carText(w.car, w.model)) : ''}
+          ${row(ICON.note, 'ملاحظات', esc(w.notes))}
+        </div>
+        ${S.canWrite ? `<div style="margin-top:12px"><button class="small-btn" data-act="w-edit" data-id="${esc(id)}">${ICON.edit}تعديل البيانات</button></div>` : ''}</div>`,
+      foot: acts, footCls: w.code === 1 ? 'two' : '',
+    };
+  } });
+}
+function openWorkerEdit(id) {
+  const w = S.workers.get(id); if (!w) return;
+  const f = (k, label, ltr, type = 'text') => `<label for="e-${k}">${label}<input id="e-${k}" ${ltr ? 'class="ltr"' : ''} ${type === 'num' ? 'inputmode="numeric"' : ''} value="${esc(k === 'name' ? displayName(w.name) + (/\/\/\s*[?؟]/.test(w.name) ? ' //?' : '') : w[k] ?? '')}"></label>`;
+  Sheets.push({ render: () => ({
+    title: `${ICON.edit}تعديل بيانات العامل`,
+    body: `<div class="form">${f('name', 'الاسم', true)}${f('emp', 'الرقم الوظيفي', true, 'num')}${f('iq', 'رقم الإقامة', true, 'num')}${f('nat', 'الجنسية (بالإنجليزي)', true)}${f('job', 'المهنة', true)}${f('dept', 'القسم', true)}
+      ${w.h === 'w' ? f('car', 'رقم السيارة', true) + f('model', 'نوع السيارة', true) : ''}${f('room', 'رقم الغرفة', true, 'num')}
+      <label for="e-notes">ملاحظات<textarea id="e-notes" rows="3">${esc(w.notes || '')}</textarea></label></div>`,
+    foot: `<button class="big neutral" data-act="w-edit-save" data-id="${esc(id)}">${ICON.check}<span>حفظ التعديل</span></button>`,
+  }) });
+}
+async function saveWorkerEdit(id) {
+  const w = S.workers.get(id); if (!w) return;
+  const v = k => clean($('#e-' + k)?.value ?? '');
+  const before = plainWorker(w);
+  const after = { ...before, emp: idText(v('emp')), iq: idText(v('iq')), nat: v('nat'), job: v('job'), dept: v('dept'), notes: clean($('#e-notes').value) };
+  const nm = v('name'); after.name = w.code === 1 ? addCheck(nm) : stripCheck(nm);
+  const rn = Number(normDigits(v('room'))); if (Number.isFinite(rn) && rn > 0 && rn !== w.room) { after.room = rn; after.ord = nextOrd(w.h); }
+  if (w.h === 'w') { after.car = v('car'); after.model = v('model'); }
+  busy(true, 'جاري الحفظ…');
+  try { const res = await commit('edit', w, after); Sheets.pop(); toastUndo('انحفظ التعديل', res); }
+  catch (e) { toast(errText(e)); } finally { busy(false); }
+}
+function openRoomEdit(h, n) {
+  const conf = (S.rooms[h]?.list || []).find(r => r.n === n) || { n, beds: '', note: '', names: false, blocked: false, util: null };
+  const b = parseBeds(conf.beds); const st = { d: b.d, s: b.s, note: conf.note || '', blocked: !!conf.blocked, names: !!conf.names };
+  Sheets.push({ render: () => ({
+    title: `${ICON.bed}تعديل غرفة <span class="num">${n}</span>`,
+    body: `<div class="form">
+      <div><b>سراير دبل (شخصين)</b><div class="stepper"><button data-act="rs" data-k="d" data-v="-1" aria-label="أقل">−</button><b class="num" id="rs-d">${st.d}</b><button data-act="rs" data-k="d" data-v="1" aria-label="أكثر">+</button></div></div>
+      <div><b>سراير مفردة</b><div class="stepper"><button data-act="rs" data-k="s" data-v="-1" aria-label="أقل">−</button><b class="num" id="rs-s">${st.s}</b><button data-act="rs" data-k="s" data-v="1" aria-label="أكثر">+</button></div></div>
+      <label for="rs-note">ملاحظة الغرفة<input id="rs-note" value="${esc(st.note)}" placeholder="مثلاً: مكيف اسبليت"></label>
+      <label class="toggle" for="rs-blocked"><input type="checkbox" id="rs-blocked" ${st.blocked ? 'checked' : ''}>ممنوع التسكين</label>
+      <label class="toggle" for="rs-names"><input type="checkbox" id="rs-names" ${st.names ? 'checked' : ''}>اكتب أسماء الساكنين في ملاحظات جدول السراير</label></div>`,
+    foot: `<button class="big neutral" data-act="rs-save" data-h="${h}" data-n="${n}">${ICON.check}<span>حفظ</span></button>`,
+  }), state: st });
+}
+async function saveRoomEdit(h, n, st) {
+  const doc = S.rooms[h] ? { ...S.rooms[h], list: [...S.rooms[h].list] } : { list: [], footer: '' };
+  const i = doc.list.findIndex(r => r.n === n);
+  const prev = i >= 0 ? doc.list[i] : { n, util: null };
+  const next = { ...prev, n, beds: bedsText(st.d, st.s), note: clean($('#rs-note').value), blocked: $('#rs-blocked').checked, names: $('#rs-names').checked };
+  if (i >= 0) doc.list[i] = next; else { doc.list.push(next); doc.list.sort((a, b) => a.n - b.n); }
+  doc.t = Date.now();
+  busy(true, 'جاري الحفظ…');
+  try { const r = await call('room', { h, n, beds: next.beds, note: next.note, blocked: next.blocked, names: next.names }); setData(r.data); Sheets.pop(); toast('انحفظت الغرفة'); }
+  catch (e) { toast(errText(e)); } finally { busy(false); }
+}
+
+/* =====================================================================
+   17. Menu, tables, import, log
+   ===================================================================== */
+function openMenu() {
+  Sheets.push({ render: () => ({
+    title: `${ICON.menu}القائمة`,
+    body: `<div class="menu">
+      <button class="mitem" data-act="tables">${ICON.table}<span>عرض الجداول<small>جدول العمال وجدول السراير</small></span></button>
+      <button class="mitem" data-act="send-xlsx">${ICON.send}<span>إرسال الإكسل<small>ملف واحد فيه الجداول الأربعة محدّثة، ترسله في القروب</small></span></button>
+      <button class="mitem" data-act="refresh">${ICON.history}<span>تحديث<small>يجيب آخر البيانات من الجدول</small></span></button>
+      ${S.url ? `<a class="mitem" href="${esc(S.url)}" target="_blank" rel="noopener">${ICON.download}<span>فتح ملف Google Sheets<small>لصاحب الملف: الجداول الأربعة وسجل التعديلات</small></span></a>` : ''}
+      <button class="mitem" data-act="import">${ICON.upload}<span>استيراد من الإكسل<small>يستبدل البيانات الحالية بالملفات اللي تختارها</small></span></button>
+      <button class="mitem" data-act="forget-pin">${ICON.lock}<span>قفل هذا الجوال<small>يطلب الرمز السري مرة ثانية</small></span></button>
+    </div>`,
+  }) });
+}
+function openTables() {
+  let h = S.h, kind = 'B';
+  Sheets.push({ wide: true, live: true, render() {
+    const segH = `<div class="seg">${['w', 'a'].map(x => `<button class="${x === h ? 'on' : ''}" data-act="tbl" data-h="${x}">${H[x].name}</button>`).join('')}</div>`;
+    const segK = `<div class="seg">${[['B', 'السراير'], ['W', 'العمال']].map(([k, l]) => `<button class="${k === kind ? 'on' : ''}" data-act="tbl" data-k="${k}">${l}</button>`).join('')}</div>`;
+    let table = '';
+    if (kind === 'B') {
+      const rs = bedsRows(h);
+      table = `<table class="t"><thead><tr>${BEDS_HEAD.map(x => `<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${rs.map(r => `<tr class="${r.empty ? 'empty' : ''}">${[r.n, r.p, r.beds, r.free, r.nat, r.notes, r.extra].map((v, i) => `<td class="${i < 4 ? 'n' : ''}">${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    } else {
+      const ws = workersOf(h);
+      table = `<table class="t"><thead><tr>${HEAD[h].map(x => `<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${ws.map(w => `<tr class="${w.code === 1 ? '' : 'gone'}">${workerCells(h, w).map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    }
+    return { title: `${ICON.table}الجداول`, body: `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${segH}${segK}</div><div class="tablewrap" dir="${kind === 'W' ? 'ltr' : 'rtl'}">${table}</div>` };
+  }, setH(x) { h = x; }, setK(k) { kind = k; } });
+}
+let IMP = null;
+function openImport() {
+  IMP = { items: [], busy: false, done: 0, total: 0 };
+  Sheets.push({ onClose: () => { IMP = null; }, render() {
+    if (!IMP) return { title: '', body: '' };
+    if (IMP.busy) return { title: `${ICON.upload}استيراد`, body: `<div class="center"><div class="spin"></div><p class="lead">جاري كتابة الجداول في Google Sheets…</p><p class="muted">ممكن ياخذ دقيقة. لا تقفل الصفحة.</p></div>` };
+    const items = IMP.items; const data = items.length ? buildImport(items) : null;
+    const hs = data ? [...new Set([...Object.keys(data.workers), ...Object.keys(data.rooms)])] : [];
+    const sum = data ? hs.map(h => `<li>${H[h].name}: ${data.workers[h] ? `<b class="num">${data.workers[h].length}</b> صف عمال` : 'بدون جدول عمال'}${data.rooms[h] ? ` و<b class="num">${data.rooms[h].list.length}</b> غرفة` : ' وبدون جدول سراير'}</li>`).join('') : '';
+    return {
+      title: `${ICON.upload}استيراد من الإكسل`,
+      body: `<p class="muted" style="margin-top:0">اختر ملفات الإكسل الأربعة (أو اللي تبي تحدّثه منها). الصفحة تعرف كل ملف لحالها، وتقدر تغيّر نوعه إذا غلطت.</p>
+        <button class="big ghost" style="width:100%" data-act="pick-xlsx">${ICON.upload}<span>${items.length ? 'إضافة ملفات' : 'اختيار الملفات'}</span></button>
+        <div class="filelist">${items.map((it, i) => `<div class="fileitem ${it.err ? 'bad' : ''}"><span class="fn">${esc(it.name)}</span>
+          ${it.err ? `<span style="color:var(--out)">${esc(it.err)}</span>` : `<select id="slot-${i}" data-act-change="slot" data-i="${i}" aria-label="نوع الملف">${Object.entries(SLOT_NAMES).filter(([k]) => it.kind === 'beds' ? k[0] !== 'W' : k[0] !== 'B').map(([k, l]) => `<option value="${k}" ${it.slot === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+          <span class="muted" style="font-size:13px">${it.beds ? `${it.beds.list.length} غرفة` : `${it.workers.length} صف`}</span>`}</div>`).join('')}</div>
+        ${sum ? `<ul>${sum}</ul>` : ''}
+        ${data && hasData() ? `<div class="warnbox">${ICON.alert}<span>الاستيراد يستبدل بيانات ${hs.map(h => H[h].name).join(' و')} الموجودة في الصفحة بالملفات هذي.</span></div>` : ''}`,
+      foot: data && hs.length ? `<button class="big neutral" data-act="run-import">${ICON.check}<span>استيراد</span></button>` : '',
+    };
+  } });
+}
+/* =====================================================================
+   18. Toast, busy, chime
+   ===================================================================== */
+let toastTimer = null;
+function toast(msg, btn) {
+  const el = $('#toast'); clearTimeout(toastTimer);
+  el.innerHTML = `<div class="t" role="status"><span>${esc(msg)}</span>${btn ? `<button data-act="${btn.act}">${ICON.undo} ${esc(btn.label)}</button>` : ''}</div>`;
+  toastTimer = setTimeout(() => { el.innerHTML = ''; }, btn ? 9000 : 4000);
+}
+let lastRes = null;
+function toastUndo(msg, res) { lastRes = res; toast(msg, { act: 'toast-undo', label: 'تراجع' }); }
+function busy(on, text) { $('#busy').hidden = !on; if (text) $('#busy-t').textContent = text; }
+let audioCtx = null;
+function chime() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination);
+    o.frequency.setValueAtTime(660, audioCtx.currentTime); o.frequency.setValueAtTime(990, audioCtx.currentTime + 0.12);
+    g.gain.setValueAtTime(0.0001, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.15, audioCtx.currentTime + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
+    o.start(); o.stop(audioCtx.currentTime + 0.36);
+  } catch (e) { /* sound is optional */ }
+}
+
+/* =====================================================================
+   19. Events
+   ===================================================================== */
+const ACT = {
+  menu: openMenu,
+  housing: el => { S.h = el.dataset.h; render(); },
+  onlyFree: () => { S.onlyFree = !S.onlyFree; render(); },
+  room: el => openRoom(el.dataset.h, +el.dataset.n),
+  worker: el => openWorker(el.dataset.id),
+  back: () => { const t = Sheets.top(); if (t && t.spec.noBack) return; if (t && t.spec.render === flowView) flowBack(); else Sheets.pop(); },
+  refresh: async () => { Sheets.closeAll(); busy(true, 'جاري التحديث…'); await loadAll(); busy(false); if (!S.stale) toast('تم التحديث'); },
+  'forget-pin': () => { setPin(''); Sheets.closeAll(); S.workers = new Map(); S.rooms = { w: null, a: null }; S.ready = false; render(); openPin('enter'); },
+  'pin-k': el => pinKey(el.dataset.k),
+  closeAll: () => Sheets.closeAll(),
+  startAdd: () => startFlow('add'),
+  startExit: () => startFlow('exit'),
+  'add-here': el => startFlow('add', { h: el.dataset.h, room: +el.dataset.n }),
+  'm-paste': () => go('paste'),
+  'm-photo': () => { const i = $('#file-img'); i.value = ''; i.click(); },
+  'm-keypad': () => { F.kp = ''; F.kpField = null; F.kpReturn = false; go('keypad'); },
+  'm-room': () => go('room'),
+  'read-text': () => { const t = $('#paste-box')?.value || ''; F.text = t; if (t.trim().length < 3) { toast('الصق الرسالة أول'); return; } readAndContinue({ text: t }); },
+  kp: el => {
+    const k = el.dataset.k;
+    if (k === 'del') F.kp = F.kp.slice(0, -1);
+    else if (k === 'ok') return kpDone();
+    else if (F.kp.length < 12) F.kp += k;
+    Sheets.redraw();
+  },
+  'kp-pick': el => {
+    const w = S.workers.get(el.dataset.id); if (!w) return;
+    if (F.kind === 'add') { const d = blankDraft(); d.emp = w.emp; d.iq = w.iq; F.queue = [enrich(d)]; F.qi = 0; F.d = F.queue[0]; F.h = w.h; go('review'); }
+    else { F.w = w; go('reason'); }
+  },
+  'edit-f': el => {
+    const f = el.dataset.f; F.editField = f;
+    if (f === 'emp' || f === 'iq') { F.kp = F.d[f] || ''; F.kpField = f; F.kpReturn = true; go('keypad'); }
+    else go('pickfield');
+  },
+  'pick-val': el => {
+    const v = el.dataset.v; const f = F.editField; F.d[f] = v;
+    if (f === 'job' && (!F.d.dept || F.d._autoDept)) { F.d.dept = deptForJob(v); F.d._autoDept = true; }
+    if (f === 'dept') F.d._autoDept = false;
+    F.hist.pop(); Sheets.redraw();
+  },
+  'pick-model': el => { F.d.model = el.dataset.v; const car = $('#f-car')?.value || ''; F.d.car = clean(car) || F.d.car; Sheets.redraw(); },
+  'pick-typed': el => {
+    const v = clean($('#' + el.dataset.src)?.value || ''); const f = F.editField;
+    if (f === 'car') { F.d.car = idText(v) || (F.d.model && F.d.model !== 'Non' ? '' : 'Non'); }
+    else if (v) F.d[f] = v;
+    F.hist.pop(); Sheets.redraw();
+  },
+  'to-room': () => { F.showAll = false; if (F.d.h) F.h = F.d.h; if (F.preset.room && F.preset.h === F.h) { F.room = F.preset.room; go('confirm'); } else go('room'); },
+  'flow-h': el => { F.h = el.dataset.h; Sheets.redraw(); },
+  'show-all': () => { F.showAll = !F.showAll; Sheets.redraw(); },
+  'pick-room': el => {
+    F.h = el.dataset.h; F.room = +el.dataset.n;
+    if (F.kind === 'exit') go('roomworkers'); else go('confirm');
+  },
+  'pick-worker': el => { const w = S.workers.get(el.dataset.id); if (!w) return; F.w = w; go(F.reason ? (F.reason === 'site' && !F.site ? 'site' : 'confirm') : 'reason'); },
+  'pick-reason': el => { F.reason = el.dataset.k; F.site = ''; F.ret = ''; go(F.reason === 'site' ? 'site' : F.reason === 'vacation' ? 'vacation' : 'confirm'); },
+  'pick-site': el => { F.site = el.dataset.v; go('confirm'); },
+  'vac-skip': () => { F.ret = ''; go('confirm'); },
+  'vac-ok': () => { const v = $('#f-ret')?.value; F.retIso = v || ''; if (v) { const [y, m, d] = v.split('-').map(Number); F.ret = `${d}/${m}/${y}`; } else F.ret = ''; go('confirm'); },
+  save: () => flowSave(),
+  'undo-last': async () => { if (!F || !F.res) return; busy(true, 'جاري التراجع…'); try { if (await undoResult(F.res)) { toast('تم التراجع'); F.res = null; Sheets.closeAll(); } } catch (e) { toast(errText(e)); } finally { busy(false); } },
+  'toast-undo': async () => { if (!lastRes) return; const r = lastRes; lastRes = null; $('#toast').innerHTML = ''; try { if (await undoResult(r)) toast('تم التراجع'); } catch (e) { toast(errText(e)); } },
+  'next-q': () => { F.qi++; F.d = F.queue[F.qi]; F.room = null; F.res = null; F.hist = ['review']; if (F.d.h) F.h = F.d.h; Sheets.redraw(); },
+  'w-exit': el => { const w = S.workers.get(el.dataset.id); if (!w) return; startFlow('exit', { w, step: 'reason' }); },
+  'w-move': el => { const w = S.workers.get(el.dataset.id); if (!w) return; startFlow('move', { w, h: w.h, step: 'room', d: { nat: w.nat } }); },
+  'w-return': el => { const w = S.workers.get(el.dataset.id); if (!w) return; startFlow('return', { w, h: w.h, step: 'room', d: { nat: w.nat } }); },
+  'w-edit': el => openWorkerEdit(el.dataset.id),
+  'w-edit-save': el => saveWorkerEdit(el.dataset.id),
+  'room-edit': el => openRoomEdit(el.dataset.h, +el.dataset.n),
+  rs: el => { const t = Sheets.top(); const st = t.spec.state; const k = el.dataset.k; st[k] = Math.max(0, Math.min(12, st[k] + Number(el.dataset.v))); $('#rs-' + k).textContent = st[k]; },
+  'rs-save': el => saveRoomEdit(el.dataset.h, +el.dataset.n, Sheets.top().spec.state),
+  'send-xlsx': () => { Sheets.closeAll(); openSend(); },
+  'send-retry': () => prepSend(),
+  'send-go': () => sendGo(),
+  tables: () => openTables(),
+  tbl: el => { const t = Sheets.top(); if (el.dataset.h) t.spec.setH(el.dataset.h); if (el.dataset.k) t.spec.setK(el.dataset.k); Sheets.redraw(); },
+  import: () => openImport(),
+  'import-pick': () => { openImport(); const i = $('#file-xlsx'); i.value = ''; i.click(); },
+  'pick-xlsx': () => { const i = $('#file-xlsx'); i.value = ''; i.click(); },
+  'run-import': async () => {
+    if (!IMP || IMP.busy) return;
+    const data = buildImport(IMP.items); IMP.busy = true; Sheets.redraw();
+    try {
+      await runImport(data);
+      Sheets.closeAll(); toast('تم الاستيراد'); changed();
+    } catch (e) { console.warn(e); if (IMP) { IMP.busy = false; Sheets.redraw(); } toast(errText(e)); }
+  },
+};
+document.addEventListener('click', ev => {
+  const el = ev.target.closest('[data-act]'); if (!el) return;
+  const fn = ACT[el.dataset.act]; if (!fn) return;
+  if (el.disabled) return;
+  ev.preventDefault(); fn(el, ev);
+});
+document.addEventListener('change', ev => {
+  const el = ev.target;
+  if (el.dataset.actChange === 'slot' && IMP) { const it = IMP.items[+el.dataset.i]; it.slot = el.value; it.userSlot = true; Sheets.redraw(); }
+});
+document.addEventListener('paste', ev => {
+  if (ev.target && ev.target.id === 'paste-box') setTimeout(() => { const t = $('#paste-box')?.value || ''; if (F && t.trim().length >= 3) { F.text = t; readAndContinue({ text: t }); } }, 60);
+});
+document.addEventListener('input', ev => { if (ev.target && ev.target.id === 'paste-box' && F) F.text = ev.target.value; });
+document.addEventListener('keydown', ev => {
+  if (PIN) { if (/^\d$/.test(ev.key)) { pinKey(ev.key); ev.preventDefault(); } else if (ev.key === 'Backspace') { pinKey('del'); ev.preventDefault(); } else if (ev.key === 'Enter') { pinKey('ok'); ev.preventDefault(); } return; }
+  if (ev.key === 'Escape' && Sheets.stack.length) { ACT.back(); }
+  if (F && Sheets.top()?.spec.render === flowView && F.hist[F.hist.length - 1] === 'keypad') {
+    if (/^\d$/.test(ev.key)) { ACT.kp({ dataset: { k: ev.key } }); ev.preventDefault(); }
+    else if (ev.key === 'Backspace') { ACT.kp({ dataset: { k: 'del' } }); ev.preventDefault(); }
+    else if (ev.key === 'Enter') { ACT.kp({ dataset: { k: 'ok' } }); ev.preventDefault(); }
+  }
+});
+$('#file-img').addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f && F) readAndContinue({ image: f }); });
+$('#file-xlsx').addEventListener('change', async ev => {
+  const files = [...(ev.target.files || [])]; if (!files.length) return;
+  if (!IMP) openImport();
+  busy(true, 'جاري قراءة الملفات…');
+  try { const items = await readImportFiles(files); IMP.items = [...IMP.items, ...items]; assignSlots(IMP.items); }
+  finally { busy(false); Sheets.redraw(); }
+});
+
+/* =====================================================================
+   20. Start
+   ===================================================================== */
+let PIN = null;
+function openPin(mode) {
+  if (PIN) return;
+  PIN = { mode, val: '', first: '', err: '', busy: false };
+  Sheets.push({ noBack: true, onClose: () => { PIN = null; }, render() {
+    if (!PIN) return { title: '', body: '' };
+    const setup = PIN.mode === 'setup';
+    const label = setup ? (PIN.first ? 'اكتب نفس الرمز مرة ثانية' : 'اختر رمز سري من 4 إلى 8 أرقام') : 'اكتب الرمز السري';
+    return {
+      title: `${ICON.lock}${setup ? 'تجهيز الصفحة' : 'الرمز السري'}`,
+      body: `${setup && !PIN.first ? '<p class="muted center" style="margin-top:0">هذا الرمز تعطيه للمسؤول عن الجداول. اللي معه الرابط والرمز يقدر يعدّل.</p>' : ''}
+        <div class="kp-label">${ICON.lock}${label}</div>
+        <div class="kp-show dots" aria-live="polite">${PIN.val ? '●'.repeat(PIN.val.length) : '<span class="ph">– – – –</span>'}</div>
+        ${PIN.err ? `<p class="pin-err">${esc(PIN.err)}</p>` : ''}
+        <div class="kp-keys">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button class="key" data-act="pin-k" data-k="${n}">${n}</button>`).join('')}
+          <button class="key del" data-act="pin-k" data-k="del" aria-label="مسح رقم">⌫</button><button class="key" data-act="pin-k" data-k="0">0</button>
+          <button class="key ok" data-act="pin-k" data-k="ok" aria-label="تم">${ICON.check}</button></div>`,
+    };
+  } });
+}
+async function pinKey(k) {
+  if (!PIN || PIN.busy) return;
+  if (k === 'del') { PIN.val = PIN.val.slice(0, -1); PIN.err = ''; Sheets.redraw(); return; }
+  if (k !== 'ok') { if (PIN.val.length < 8) PIN.val += k; PIN.err = ''; Sheets.redraw(); return; }
+  if (PIN.val.length < 4) { PIN.err = 'الرمز من 4 أرقام على الأقل'; Sheets.redraw(); return; }
+  if (PIN.mode === 'setup') {
+    if (!PIN.first) { PIN.first = PIN.val; PIN.val = ''; Sheets.redraw(); return; }
+    if (PIN.first !== PIN.val) { PIN.first = ''; PIN.val = ''; PIN.err = 'الرمزين مو نفس بعض. ابدأ من جديد.'; Sheets.redraw(); return; }
+    PIN.busy = true;
+    try { await gsRun({ op: 'init', newPin: PIN.val }); }
+    catch (e) {
+      PIN.busy = false;
+      if (e && e.code === 'haspin') { PIN.mode = 'enter'; PIN.first = ''; PIN.val = ''; PIN.err = 'فيه رمز من قبل. اكتب الرمز.'; }
+      else PIN.err = errText(e);
+      Sheets.redraw(); return;
+    }
+  }
+  const p = PIN.val; PIN.busy = true; busy(true, 'لحظة…');
+  try {
+    const r = await gsRun({ op: 'load', pin: p });
+    setPin(p); Sheets.pop(); PIN = null; setData(r.data);
+  } catch (e) {
+    if (PIN) { PIN.busy = false; PIN.val = ''; PIN.err = e && e.code === 'badpin' ? 'الرمز غلط' : errText(e); Sheets.redraw(); }
+  } finally { busy(false); }
+}
+async function boot() {
+  document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl';
+  $('#btn-in .bi').innerHTML = ICON.in; $('#btn-out .bi').innerHTML = ICON.out;
+  renderTop();
+  if (!API_URL) { $('#main').innerHTML = `<div class="card center" style="margin-top:20px"><p class="lead">افتح الرابط الكامل اللي وصلك</p><p class="muted">الرابط ناقص. اطلب الرابط من صاحب الجداول وافتحه مرة ثانية.</p></div>`; return; }
+  let st;
+  try { st = await gsRun({ op: 'status' }); }
+  catch (e) { console.warn('status', e); $('#main').innerHTML = `<div class="card center" style="margin-top:20px"><p class="lead">ما قدرت أوصل لملف الجداول</p><p class="muted">تأكد من الإنترنت وافتح الرابط مرة ثانية.${e && e.code === 'bad' ? ' إذا تكرر، صاحب الجداول لازم ينشر آخر نسخة من الكود.' : ''}</p></div>`; return; }
+  S.mode = 'gs';
+  if (!st.hasPin) { setPin(''); openPin('setup'); return; }
+  if (!getPin()) { openPin('enter'); return; }
+  await loadAll();
+}
+const idle = () => document.visibilityState === 'visible' && !F && !PIN && !IMP && !SEND && !S.busy && S.ready && getPin();
+setInterval(() => { if (idle()) loadAll(true); }, 60000);
+document.addEventListener('visibilitychange', () => { if (idle()) loadAll(true); });
+window.__app = { S, rooms, totals, bedsRows, workersOf, localParse, parseBeds, extraBeds, findMatches, natSummary };
+boot();
+</script>
+</body>
+</html>
