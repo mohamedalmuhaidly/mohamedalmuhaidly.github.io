@@ -1315,9 +1315,12 @@ function parseBlock(b, whole) {
   if (!d.h) { if (/السكن\s*(ال)?[اإ]داري|admin\s*hous/i.test(whole)) d.h = 'a'; else if (/سكن\s*العمال|labou?r\s*camp|workers?\s*hous/i.test(whole)) d.h = 'w'; }
   return d;
 }
+let SITE_RE = null;
 function findSite(text) {
+  // English site words must stand alone, so names like "Farman" or "Bishal" are not read as a site.
+  if (!SITE_RE) SITE_RE = SITES.map(s => ({ s, re: new RegExp(s.al.map(a => { const n = escRe(normAr(a)); return /[a-z]/.test(n) ? `(?<![a-z])${n}h?s?(?![a-z])` : n; }).join('|')) }));
   const n = normAr(text);
-  for (const s of SITES) for (const a of s.al) if (n.includes(normAr(a))) return s;
+  for (const x of SITE_RE) if (x.re.test(n)) return x.s;
   return null;
 }
 async function imageToB64(file) {
