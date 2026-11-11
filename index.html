@@ -109,6 +109,14 @@ main{padding-top:14px;padding-bottom:120px}
 .chip.miss.on{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
 .chip[hidden]{display:none}
 .qtag{color:var(--warn);font-weight:700}
+.tickbox{width:28px;height:28px;border-radius:8px;border:2px solid var(--out);display:grid;place-items:center;flex:none;color:#fff}
+.tickbox .ic{width:18px;height:18px}
+.wrow.sel .tickbox{background:var(--out)}
+.wrow.unsel{opacity:.55}
+.vrow-end{font-size:12.5px;color:var(--out);font-weight:700}
+.banner.vac{cursor:pointer;width:100%;text-align:start;border:0;font:inherit}
+.small-btn.danger{color:var(--out);border-color:var(--out)}
+.sumbox{width:100%;min-height:260px;font:inherit;font-size:14px;line-height:1.6;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface);color:var(--ink)}
 .tile small{display:block}
 .sec-title{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;margin:18px 0 10px;color:var(--muted)}
 .sec-title:first-child{margin-top:0}
@@ -564,11 +572,12 @@ const byOrd = (a, b) => (a.ord ?? 0) - (b.ord ?? 0);
 /* =====================================================================
    5. State
    ===================================================================== */
+function savedH() { try { return localStorage.getItem('housing-tab-v1') === 'a' ? 'a' : 'w'; } catch (e) { return 'w'; } }
 const S = {
   mode: 'loading',          // loading | gs
   rooms: { w: null, a: null },
   workers: new Map(),
-  h: 'w', onlyFree: false, q: '',
+  h: savedH(), onlyFree: false, onlyMiss: false, q: '',
   canWrite: true, imgOk: true, url: '', pinMem: '',
   cache: {}, stale: false, ready: false, busy: false,
 };
@@ -1110,11 +1119,83 @@ function sendView() {
     </div>`;
   return {
     title,
-    body: card + (SEND.done ? steps : `<p class="muted center" style="margin-top:14px">${share ? 'اضغط «إرسال» واختر واتساب ثم القروب.' : 'اضغط «تنزيل»، وبعدها أرسله من واتساب.'}</p>`),
+    body: card + (SEND.done ? steps : `<p class="muted center" style="margin-top:14px">${share ? 'اضغط «إرسال» واختر واتساب ثم القروب.' : 'اضغط «تنزيل»، وبعدها أرسله من واتساب.'}</p>`)
+      + `<button class="big ghost" style="width:100%;margin-top:14px" data-act="sum-open">${ICON.note}<span>ملخص نصّي للقروب</span></button>`,
     foot: SEND.done
       ? `<button class="big ghost" data-act="send-go">${ICON.download}<span>تنزيل مرة ثانية</span></button>`
       : `<button class="big go" data-act="send-go">${share ? ICON.send : ICON.download}<span>${share ? 'إرسال' : 'تنزيل'}</span></button>`,
   };
+}
+
+/* Group summary text, deleting rows of workers who are out, old clearance rows. */
+function canShareText() { try { return !!(navigator.share && (!navigator.canShare || navigator.canShare({ text: 'x' }))); } catch (e) { return false; } }
+function openSummary() {
+  const text = summaryText();
+  Sheets.push({ render: () => ({
+    title: `${ICON.note}ملخص للقروب`,
+    body: `<p class="muted" style="margin-top:0">رسالة جاهزة فيها الأعداد والغرف اللي فيها مكان.</p><textarea class="sumbox" readonly aria-label="الملخص">${esc(text)}</textarea>`,
+    foot: `<button class="big go" data-act="sum-share">${canShareText() ? ICON.send : ICON.paste}<span>${canShareText() ? 'إرسال' : 'نسخ'}</span></button>`,
+  }), state: { text } });
+}
+async function shareSummary() {
+  const t = Sheets.top(); const text = (t && t.spec.state && t.spec.state.text) || summaryText();
+  if (canShareText()) {
+    try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; console.warn('share text', e); }
+  }
+  try { await navigator.clipboard.writeText(text); toast('انتسخ الملخص. الصقه في القروب'); return; } catch (e) { /* copy not allowed here */ }
+  const box = document.querySelector('.sumbox');
+  if (box) { box.removeAttribute('readonly'); box.focus(); box.select(); }
+  toast('انسخ النص من المربع');
+}
+
+function openDelete(id) {
+  const w = S.workers.get(id); if (!w) return;
+  Sheets.push({ render: () => ({
+    title: `${ICON.xcircle}حذف من الجدول`, tone: 'out',
+    body: `${miniWorker(w)}<div class="warnbox" style="margin-top:12px">${ICON.alert}<span>بينحذف سطره من جدول ${H[w.h].name} نهائياً. يبقى له سجل في تبويب «السجل» في ملف Google Sheets.</span></div>`,
+    foot: `<button class="big out" data-act="w-del-ok" data-id="${esc(id)}">${ICON.xcircle}<span>حذف</span></button>`,
+  }) });
+}
+const OLD_CODE = 'لازم تحدّث كود الرمز.gs أول (تحديث 3 في صفحة التجهيز)';
+async function deleteWorker(id) {
+  const w = S.workers.get(id); if (!w || S.busy) return;
+  busy(true, 'جاري الحذف…'); S.busy = true;
+  try {
+    const r = await call('del', { act: 'del', h: w.h, row: w.row, sig: w.sig });
+    setData(r.data); Sheets.closeAll(); toastUndo('انحذف من الجدول', { act: 'del', undo: r.undo });
+  } catch (e) { toast(e && e.code === 'badop' ? OLD_CODE : errText(e)); }
+  finally { S.busy = false; busy(false); }
+}
+
+// Workers who left on clearance before deleting existed: their rows are still in the table.
+function oldFinals() { return [...S.workers.values()].filter(w => !w.label && w.code !== 1 && /[اإ]خلاء\s*(?:ال)?طرف/.test(String(w.notes || '').split('|').pop())); }
+function openOldFinals() {
+  const st = { sure: false };
+  Sheets.push({ live: true, state: st, render() {
+    const list = oldFinals();
+    return {
+      title: `${ICON.xcircle}إخلاء طرف قدام`,
+      body: list.length ? `<p class="muted" style="margin-top:0">هذولي خرجوا إخلاء طرف وسطورهم باقية في الجدول.</p><div class="list">${list.map(w => workerRow(w)).join('')}</div>` : '<div class="empty-note">ما فيه أحد.</div>',
+      foot: list.length ? `<button class="big out" data-act="old-final-del">${ICON.xcircle}<span>${st.sure ? 'متأكد؟ اضغط مرة ثانية' : `احذفهم كلهم (${list.length})`}</span></button>` : '',
+    };
+  } });
+}
+async function deleteOldFinals() {
+  const t = Sheets.top(); const st = t && t.spec.state;
+  if (st && !st.sure) { st.sure = true; Sheets.redraw(); return; }
+  const list = oldFinals(); if (!list.length || S.busy) return;
+  let ok = 0, failed = 0, old = false; S.busy = true;
+  try {
+    for (let i = 0; i < list.length; i++) {
+      busy(true, `جاري الحذف… ${i + 1} من ${list.length}`);
+      const w = [...S.workers.values()].find(x => x.h === list[i].h && x.sig === list[i].sig) || list[i];
+      try { const r = await call('del', { act: 'final', h: w.h, row: w.row, sig: w.sig }); setData(r.data); ok++; }
+      catch (e) { if (e && e.code === 'badop') { old = true; break; } failed++; }
+    }
+  } finally { S.busy = false; busy(false); }
+  if (st) st.sure = false;
+  Sheets.refresh();
+  toast(old ? OLD_CODE : `انحذف ${ok}${failed ? `، وما انحذف ${failed}` : ''}`);
 }
 
 /* =====================================================================
@@ -1147,7 +1228,18 @@ function localParse(text) {
     cur.lines.push({ line, key, val });
   }
   blocks.push(cur);
-  const drafts = blocks.filter(b => b.lines.length).map(b => parseBlock(b, t));
+  let drafts = blocks.filter(b => b.lines.length).map(b => parseBlock(b, t));
+  // a plain list with one worker per line ("3543", "2- 4086 Amir Khan") and no labels
+  if (blocks.length === 1 && !['emp', 'iq', 'name'].some(k => blocks[0].keys.has(k))) {
+    const rows = blocks[0].lines.map(x => {
+      const ids = normDigits(x.line).match(/(?<!\d)\d{3,10}(?!\d)/g) || [];
+      const iq = ids.find(v => /^[12]\d{9}$/.test(v)) || '';
+      const emp = ids.find(v => v.length <= 6 && v !== iq && !/^20\d\d$/.test(v)) || '';
+      const nm = x.line.replace(/[^\p{L}\s.'-]/gu, ' ').replace(/\s+/g, ' ').trim();
+      return { emp, iq, name: /[a-z]/i.test(nm) && nm.split(' ').length >= 2 && nm.length <= 40 ? nm : '' };
+    }).filter(r => r.emp || r.iq);
+    if (rows.length >= 2) drafts = rows.map(r => ({ ...blankDraft(), ...r }));
+  }
   const good = drafts.filter(d => d.emp || d.iq || d.name);
   const out = good.length ? good : drafts.slice(0, 1);
   const ex = messageIntent(t);
@@ -1304,6 +1396,7 @@ function suggestRooms(h, d) {
     const same = nat ? (r.nat[nat] || 0) : 0; const others = r.p - same;
     let sc = r.free + same * 20 - others * 6 + (r.p === 0 ? 3 : 0);
     if (d.room && r.n === d.room && (d.h || h) === h) sc += 1000;
+    if (d.match && d.match.code !== 1 && d.match.h === h && r.n === d.match.room) sc += 500;   // his old room
     return { r, sc };
   }).sort((a, b) => b.sc - a.sc || a.r.n - b.r.n);
 }
@@ -1379,6 +1472,60 @@ async function undoResult(res) {
   finally { S.busy = false; }
 }
 
+// End of a vacation, from the worker's last note ("تنتهي إجازته قبل يوم ( 19/11/2026 )").
+function vacEnd(w) {
+  if (!w || w.label || w.code === 1) return null;
+  const segs = String(w.notes || '').split('|').map(clean).filter(Boolean); const last = segs[segs.length - 1] || '';
+  if (!/[اإ]جاز/.test(last) || /[اإ]خلاء/.test(last) || !/تنتهي|ينتهي|قبل|يرجع|ترجع/.test(last)) return null;
+  const m = normDigits(last).match(/(\d{1,2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{4})/); if (!m) return null;
+  const dt = new Date(+m[3], +m[2] - 1, +m[1]); return isNaN(dt.getTime()) ? null : dt;
+}
+function vacationsDue() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const here = new Set(); for (const w of S.workers.values()) if (w.code === 1 && !w.label) { if (idNorm(w.emp)) here.add('e' + idNorm(w.emp)); if (idNorm(w.iq)) here.add('i' + idNorm(w.iq)); }
+  const out = [];
+  for (const w of S.workers.values()) {
+    const e = vacEnd(w); if (!e || e > today) continue;
+    if ((idNorm(w.emp) && here.has('e' + idNorm(w.emp))) || (idNorm(w.iq) && here.has('i' + idNorm(w.iq)))) continue;   // already back in another row
+    out.push({ w, end: e });
+  }
+  return out.sort((a, b) => a.end - b.end);
+}
+const dmy = d => `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+// A ready message for the work group: counts, free beds per room, what needs attention.
+function summaryText() {
+  const L = [`📋 جداول السكن — ${todayStr()}`];
+  for (const h of ['w', 'a']) {
+    const t = totals(h); const free = rooms(h).filter(r => r.available);
+    L.push('', `🏢 ${H[h].name}: ${t.present} ساكن · ${t.free} سرير فاضي`);
+    if (free.length) {   // grouped by free beds, so each line is only room numbers (reads right in Arabic)
+      L.push(`🛏️ غرف فيها مكان (${free.length}):`);
+      const by = new Map(); for (const r of free) by.set(r.free, [...(by.get(r.free) || []), r.n]);
+      for (const n of [...by.keys()].sort((a, b) => a - b)) L.push(`• ${n === 1 ? 'سرير واحد' : n === 2 ? 'سريرين' : `${n} سراير`}: ${by.get(n).join('، ')}`);
+    } else L.push('🛏️ ما فيه غرف فيها مكان');
+    if (t.over) L.push(`⚠️ زيادة عن السراير: ${t.over}`);
+  }
+  const miss = ['w', 'a'].reduce((a, h) => a + rooms(h).reduce((b, r) => b + r.miss, 0), 0);
+  const vd = vacationsDue().length;
+  if (miss || vd) L.push('');
+  if (miss) L.push(`❓ بياناتهم ناقصة (رقم وظيفي أو إقامة): ${miss}`);
+  if (vd) L.push(`✈️ خلصت إجازتهم وما رجعوا: ${vd}`);
+  return L.join('\n');
+}
+function openVacDue() {
+  Sheets.push({ live: true, render() {
+    const list = vacationsDue();
+    return {
+      title: `${ICON.plane}خلصت إجازتهم`,
+      body: list.length ? `<p class="muted" style="margin-top:0">إجازتهم انتهت حسب الملاحظات وما رجعوا للسكن. اضغط على العامل، وإذا رجع اضغط «رجوع للسكن».</p>
+        <div class="list">${list.map(x => `<button class="wrow gone" data-act="worker" data-id="${esc(x.w.id)}"><span class="flag emoji">${natFlag(x.w.nat)}</span>
+          <span class="wb"><span class="wn">${esc(displayName(x.w.name) || '—')}</span><span class="ws"><span class="num">${esc(x.w.emp || x.w.iq || '—')}</span> · <span class="vrow-end">انتهت <span class="num">${dmy(x.end)}</span></span></span></span>
+          <span class="rbadge">${x.w.h === 'a' ? 'إداري ' : ''}<span class="num">${x.w.room}</span></span></button>`).join('')}</div>`
+        : '<div class="empty-note">ما فيه أحد.</div>',
+    };
+  } });
+}
+
 /* =====================================================================
    13. Home screen
    ===================================================================== */
@@ -1428,7 +1575,9 @@ function renderTop() {
   if (!nMiss && S.onlyMiss) S.onlyMiss = false;
   mb.hidden = !nMiss; $('#miss-n').textContent = nMiss; mb.classList.toggle('on', S.onlyMiss); mb.setAttribute('aria-pressed', String(S.onlyMiss));
   mb.setAttribute('aria-label', `عمال بياناتهم ناقصة: ${nMiss}`);
-  $('#top-banner').innerHTML = S.stale ? `<div class="banner warn">${ICON.alert}<div>ما قدرت أجيب آخر البيانات. تأكد من الإنترنت، وبعدها اضغط ☰ ثم «تحديث».</div></div>` : '';
+  const vd = ready ? vacationsDue().length : 0;
+  $('#top-banner').innerHTML = (S.stale ? `<div class="banner warn">${ICON.alert}<div>ما قدرت أجيب آخر البيانات. تأكد من الإنترنت، وبعدها اضغط ☰ ثم «تحديث».</div></div>` : '')
+    + (vd ? `<button class="banner info vac" data-act="vacDue">${ICON.plane}<div><b class="num">${vd}</b> عمال خلصت إجازتهم وما رجعوا. اضغط هنا.</div></button>` : '');
 }
 function dotsHtml(r, extraNew = 0) {
   const out = []; const p = r.p, cap = r.cap;
@@ -1481,7 +1630,11 @@ function searchView(q) {
   const n = normAr(q), dg = idNorm(q);
   const res = [...S.workers.values()].filter(w => !w.label && ((dg && (idNorm(w.emp).includes(dg) || idNorm(w.iq).includes(dg))) || (n.length >= 2 && normAr(displayName(w.name)).includes(n))))
     .sort((a, b) => (b.code || 0) - (a.code || 0) || a.room - b.room).slice(0, 60);
-  return res.length ? `<div class="list">${res.map(w => workerRow(w)).join('')}</div>` : `<div class="empty-note">ما لقيت أحد بهذا الرقم أو الاسم.</div>`;
+  const rn = /^\s*\d{1,3}\s*$/.test(normDigits(q)) ? Number(normDigits(q).trim()) : null;
+  const rh = rn ? ['w', 'a'].map(h => roomOf(h, rn)).filter(Boolean) : [];
+  const top = rh.map(r => `<div class="sec-title">${ICON.door}${H[r.h].name}: غرفة <span class="num">${r.n}</span></div><div class="grid">${roomTile(r)}</div>`).join('');
+  if (!top && !res.length) return `<div class="empty-note">ما لقيت أحد بهذا الرقم أو الاسم.</div>`;
+  return top + (res.length ? `${top ? `<div class="sec-title" style="margin-top:14px">${ICON.user}عمال</div>` : ''}<div class="list">${res.map(w => workerRow(w)).join('')}</div>` : '');
 }
 
 /* =====================================================================
@@ -1527,7 +1680,8 @@ function startFlow(kind, opts = {}) {
   go(opts.step || 'method');
 }
 function go(step) { if (!F) return; F.hist.push(step); Sheets.redraw(); }
-function flowBack() { if (!F) return Sheets.pop(); if (F.hist[F.hist.length - 1] === 'done') { Sheets.closeAll(); return; } F.hist.pop(); if (!F.hist.length || F.hist[F.hist.length - 1] === 'reading') { Sheets.pop(); return; } Sheets.redraw(); }
+function toConfirm() { if (F.multi) { F.hist = F.hist.slice(0, F.hist.lastIndexOf('multi') + 1); Sheets.redraw(); } else go('confirm'); }
+function flowBack() { if (!F) return Sheets.pop(); if (['done', 'multidone'].includes(F.hist[F.hist.length - 1])) { Sheets.closeAll(); return; } F.hist.pop(); if (!F.hist.length || F.hist[F.hist.length - 1] === 'reading') { Sheets.pop(); return; } Sheets.redraw(); }
 function stepsDots(n, i) { return `<span class="steps" aria-hidden="true">${Array.from({ length: n }, (_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</span>`; }
 function flowTitle() {
   if (F.kind === 'add') return { title: `${ICON.in}دخول عامل`, tone: 'in' };
@@ -1557,7 +1711,8 @@ const STEP = {
     return {
       steps: stepsDots(4, 0),
       body: `<textarea id="paste-box" class="paste" placeholder="الصق الرسالة هنا" aria-label="الرسالة" autofocus>${esc(F.text)}</textarea>
-        <div class="hint">${ICON.paste}<span>اضغط مطولاً داخل المربع واختر «لصق».</span></div>`,
+        <div class="hint">${ICON.paste}<span>اضغط مطولاً داخل المربع واختر «لصق».</span></div>
+        ${navigator.clipboard && navigator.clipboard.readText ? `<button class="big ghost" style="width:100%;margin-top:10px" data-act="paste-clip">${ICON.paste}<span>لصق اللي نسخته</span></button>` : ''}`,
       foot: `<button class="big neutral" data-act="read-text">${ICON.check}<span>قراءة</span></button>`,
     };
   },
@@ -1640,11 +1795,13 @@ const STEP = {
     let list = rooms(h).filter(r => F.kind === 'exit' ? r.p > 0 : (F.showAll ? true : r.available));
     if (F.w && F.kind === 'move') list = list.filter(r => !(r.h === F.w.h && r.n === F.w.room));
     const wanted = d.room ? roomOf(d.h || h, d.room) : null;
+    const old = F.kind !== 'exit' && d.match && d.match.code !== 1 && d.match.h === h ? roomOf(h, d.match.room) : null;
+    const oldNote = old ? `<div class="hint">${ICON.star}<span>${old.available ? `غرفته القديمة <b class="num">${old.n}</b> فيها مكان، وهي أول المقترحة.` : `غرفته القديمة <b class="num">${old.n}</b> ما فيها مكان الحين.`}</span></div>` : '';
     const warn = wanted && F.kind !== 'exit' && !wanted.available && (d.h || h) === h ? `<div class="warnbox">${ICON.alert}<span>الرسالة تقول غرفة <b class="num">${wanted.n}</b> بس ${wanted.blocked ? 'ممنوع التسكين فيها' : 'ما فيها سرير فاضي'}. اختر غرفة ثانية أو اضغط «كل الغرف».</span></div>` : '';
     return {
       steps: stepsDots(4, 2),
       body: `<div class="hswitch" role="tablist" style="margin-top:0">${['w', 'a'].map(x => `<button role="tab" aria-selected="${x === h}" class="htab ${x === h ? 'on' : ''}" data-act="flow-h" data-h="${x}" style="--hc:var(--h-${x})"><span class="hico">${ICON.building}</span><span class="hname">${H[x].name}</span>${F.kind === 'exit' ? '' : `<span class="hfree">${ICON.bed}<span class="num">${totals(x).free}</span></span>`}</button>`).join('')}</div>
-        ${warn}
+        ${warn}${oldNote}
         ${top3.length ? `<div class="sec-title" style="margin-top:16px">${ICON.star}مقترحة</div><div class="grid">${sugg.slice(0, 3).map(x => roomTile(x.r, { act: 'pick-room', sugg: true })).join('')}</div>` : ''}
         <div class="sec-title" style="margin-top:16px">${ICON.door}${F.kind === 'exit' ? 'اختر الغرفة' : F.showAll ? 'كل الغرف' : 'غرف فيها مكان'}</div>
         ${list.length ? `<div class="grid">${list.filter(r => !top3.includes(r.n)).map(r => roomTile(r, { act: 'pick-room' })).join('')}</div>` : '<div class="empty-note">ما فيه غرف.</div>'}
@@ -1722,6 +1879,29 @@ const STEP = {
       foot: `<button class="big ghost" data-act="back">${ICON.back}<span>رجوع</span></button>`,
     };
   },
+  multi() {
+    const M = F.multi; const rs = F.reason ? REASONS.find(r => r.k === F.reason) : null; const n = M.sel.size;
+    return {
+      steps: stepsDots(4, 2),
+      body: `<p class="lead" style="margin-top:0">الرسالة فيها <span class="num">${M.list.length + M.missing.length}</span> عمال${rs ? ` · <b>${rs.ar}${F.site ? ' — ' + esc(F.site) : ''}</b>` : ''}</p>
+        <p class="muted" style="margin:0 0 10px">شيل العلامة عن اللي مو طالع.</p>
+        <div class="list">${M.list.map(w => { const on = M.sel.has(w.id); return `<button class="wrow ${on ? 'sel' : 'unsel'}" data-act="multi-tog" data-id="${esc(w.id)}" aria-pressed="${on}"><span class="tickbox">${on ? ICON.check : ''}</span><span class="flag emoji">${natFlag(w.nat)}</span>
+          <span class="wb"><span class="wn">${esc(displayName(w.name) || '—')}</span><span class="ws"><span class="num">${esc(w.emp || w.iq || '—')}</span> · ${esc(jobInfo(w.job)?.ar || '')}</span></span><span class="rbadge">${w.h === 'a' ? 'إداري ' : ''}<span class="num">${w.room}</span></span></button>`; }).join('')}</div>
+        ${M.missing.length ? `<div class="warnbox" style="margin-top:10px">${ICON.alert}<span>ما لقيت في السكن: ${M.missing.map(d => esc(d.name || d.emp || d.iq || '؟')).join('، ')}</span></div>` : ''}
+        <button class="small-btn" style="margin-top:12px" data-act="multi-reason">${ICON.edit}${rs ? 'غيّر السبب' : 'اختر السبب'}</button>`,
+      foot: `<button class="big out" data-act="multi-save" ${!n || !F.reason ? 'disabled' : ''}>${F.reason === 'final' ? ICON.xcircle : ICON.check}<span>${!F.reason ? 'اختر السبب أول' : F.reason === 'final' ? 'حذف من الجدول' : 'تسجيل خروج'} (<span class="num">${n}</span>)</span></button>`,
+    };
+  },
+  multidone() {
+    const n = (F.multiRes || []).length;
+    return {
+      body: `<div class="done"><div class="okmark out">${ICON.check}</div><div class="lead">${F.reason === 'final' ? 'انحذفوا من الجدول' : 'تم تسجيل الخروج'}</div>
+        <div class="big-n"><span class="num">${n}</span> عمال</div>
+        ${F.multiFail ? `<div class="warnbox">${ICON.alert}<span>ما انحفظ <span class="num">${F.multiFail}</span>. سجّلهم مرة ثانية.</span></div>` : ''}
+        ${n ? `<button class="small-btn" data-act="multi-undo">${ICON.undo}تراجع عن الكل</button>` : ''}</div>`,
+      foot: `<button class="big ghost" data-act="closeAll">${ICON.home}<span>رجوع للغرف</span></button>`,
+    };
+  },
   switch() {
     const res = F.parsed; const toExit = F.kind === 'add'; const d0 = res.drafts[0] || {};
     return {
@@ -1773,6 +1953,11 @@ function continueParsed(res) {
     const cands = []; for (const d of res.drafts) for (const w of findMatches(d, true, true)) if (!cands.includes(w)) cands.push(w);
     F.cands = cands; const d0 = res.drafts[0];
     if (d0 && d0.exit) { F.reason = d0.exit; F.site = d0.site || ''; F.ret = d0.ret || ''; }
+    if (res.drafts.length > 1) {   // one message about several workers: one screen for all of them
+      const list = [], missing = [];
+      for (const d of res.drafts) { const c = findMatches(d, true, true).filter(w => !list.includes(w)); if (c.length) list.push(c[0]); else missing.push(d); }
+      if (list.length > 1) { F.multi = { list, sel: new Set(list.map(w => w.id)), missing }; go('multi'); return; }
+    }
     if (cands.length === 1) { F.w = cands[0]; go(F.reason ? (F.reason === 'site' && !F.site ? 'site' : 'confirm') : 'reason'); }
     else go('pick');
   }
@@ -1789,6 +1974,20 @@ function kpDone() {
   const d = blankDraft(); if (v.length >= 9) d.iq = v; else d.emp = v;
   F.cands = findMatches(d, true);
   if (F.cands.length === 1) { F.w = F.cands[0]; go('reason'); } else go('pick');
+}
+async function saveMulti() {
+  const M = F && F.multi; if (!M || F.saving || !F.reason) return; F.saving = true;
+  const list = M.list.filter(w => M.sel.has(w.id)); const done = []; let failed = 0;
+  try {
+    for (let i = 0; i < list.length; i++) {
+      busy(true, `جاري الحفظ… ${i + 1} من ${list.length}`);
+      const cur = [...S.workers.values()].find(x => x.h === list[i].h && x.sig && x.sig === list[i].sig) || S.workers.get(list[i].id) || list[i];   // rows may have moved after a delete
+      try { const r = await saveExit(cur, F.reason, F.site, F.ret); if (r) done.push(r); } catch (e) { console.warn('multi', e); failed++; }
+    }
+  } finally { busy(false); if (F) F.saving = false; }
+  if (!F) return;
+  F.multiRes = done; F.multiFail = failed; if (done.length) chime();
+  go('multidone');
 }
 async function flowSave() {
   if (!F || F.saving) return; F.saving = true;
@@ -1856,7 +2055,8 @@ function openWorker(id) {
           ${w.h === 'w' ? row(ICON.car, 'السيارة', carText(w.car, w.model)) : ''}
           ${row(ICON.note, 'ملاحظات', esc(w.notes))}
         </div>
-        ${S.canWrite ? `<div style="margin-top:12px"><button class="small-btn" data-act="w-edit" data-id="${esc(id)}">${ICON.edit}تعديل البيانات</button></div>` : ''}</div>`,
+        ${vacEnd(w) ? `<div class="warnbox" style="margin-top:10px">${ICON.plane}<span>إجازته تنتهي <b class="num">${dmy(vacEnd(w))}</b>${vacEnd(w) <= new Date() ? '، وما رجع للحين' : ''}.</span></div>` : ''}
+        ${S.canWrite ? `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="small-btn" data-act="w-edit" data-id="${esc(id)}">${ICON.edit}تعديل البيانات</button>${w.code !== 1 ? `<button class="small-btn danger" data-act="w-del" data-id="${esc(id)}">${ICON.xcircle}حذف من الجدول</button>` : ''}</div>` : ''}</div>`,
       foot: acts, footCls: w.code === 1 ? 'two' : '',
     };
   } });
@@ -1923,6 +2123,9 @@ function openMenu() {
     body: `<div class="menu">
       <button class="mitem" data-act="tables">${ICON.table}<span>عرض الجداول<small>جدول العمال وجدول السراير</small></span></button>
       <button class="mitem" data-act="send-xlsx">${ICON.send}<span>إرسال الإكسل<small>ملف واحد فيه الجداول الأربعة محدّثة، ترسله في القروب</small></span></button>
+      <button class="mitem" data-act="sum-open">${ICON.note}<span>ملخص للقروب<small>رسالة جاهزة فيها الأعداد والغرف اللي فيها مكان</small></span></button>
+      ${vacationsDue().length ? `<button class="mitem" data-act="vacDue">${ICON.plane}<span>خلصت إجازتهم (${vacationsDue().length})<small>إجازتهم انتهت وما رجعوا للسكن</small></span></button>` : ''}
+      ${oldFinals().length ? `<button class="mitem" data-act="old-final">${ICON.xcircle}<span>إخلاء طرف قدام (${oldFinals().length})<small>سطور باقية في الجدول، تقدر تحذفها</small></span></button>` : ''}
       <button class="mitem" data-act="refresh">${ICON.history}<span>تحديث<small>يجيب آخر البيانات من الجدول</small></span></button>
       ${S.url ? `<a class="mitem" href="${esc(S.url)}" target="_blank" rel="noopener">${ICON.download}<span>فتح ملف Google Sheets<small>لصاحب الملف: الجداول الأربعة وسجل التعديلات</small></span></a>` : ''}
       <button class="mitem" data-act="import">${ICON.upload}<span>استيراد من الإكسل<small>يستبدل البيانات الحالية بالملفات اللي تختارها</small></span></button>
@@ -1996,7 +2199,7 @@ function chime() {
    ===================================================================== */
 const ACT = {
   menu: openMenu,
-  housing: el => { S.h = el.dataset.h; render(); },
+  housing: el => { S.h = el.dataset.h; try { localStorage.setItem('housing-tab-v1', S.h); } catch (e) { /* private mode */ } render(); },
   onlyFree: () => { S.onlyFree = !S.onlyFree; render(); },
   onlyMiss: () => { S.onlyMiss = !S.onlyMiss; render(); },
   room: el => openRoom(el.dataset.h, +el.dataset.n),
@@ -2009,7 +2212,18 @@ const ACT = {
   startAdd: () => startFlow('add'),
   startExit: () => startFlow('exit'),
   'add-here': el => startFlow('add', { h: el.dataset.h, room: +el.dataset.n }),
-  'm-paste': () => go('paste'),
+  'm-paste': async () => {
+    let t = '';
+    try { if (navigator.clipboard && navigator.clipboard.readText) t = await navigator.clipboard.readText(); } catch (e) { t = ''; }
+    if (!F) return;
+    if (t && t.trim().length >= 3 && localParse(t).drafts.some(d => d.emp || d.iq || d.name)) { F.text = t; readAndContinue({ text: t }); }
+    else { F.text = ''; go('paste'); }
+  },
+  'paste-clip': async () => {
+    let t = '';
+    try { if (navigator.clipboard && navigator.clipboard.readText) t = await navigator.clipboard.readText(); } catch (e) { t = ''; }
+    if (t && t.trim()) { const b = $('#paste-box'); if (b) b.value = t; F.text = t; } else toast('اضغط مطولاً داخل المربع واختر «لصق»');
+  },
   'm-photo': () => { const i = $('#file-img'); i.value = ''; i.click(); },
   'm-keypad': () => { F.kp = ''; F.kpField = null; F.kpReturn = false; go('keypad'); },
   'm-room': () => go('room'),
@@ -2055,17 +2269,22 @@ const ACT = {
     if (F.kind === 'exit') go('roomworkers'); else go('confirm');
   },
   'pick-worker': el => { const w = S.workers.get(el.dataset.id); if (!w) return; F.w = w; go(F.reason ? (F.reason === 'site' && !F.site ? 'site' : 'confirm') : 'reason'); },
-  'pick-reason': el => { F.reason = el.dataset.k; F.site = ''; F.ret = ''; go(F.reason === 'site' ? 'site' : F.reason === 'vacation' ? 'vacation' : 'confirm'); },
-  'pick-site': el => { F.site = el.dataset.v; go('confirm'); },
-  'vac-skip': () => { F.ret = ''; go('confirm'); },
-  'vac-ok': () => { const v = $('#f-ret')?.value; F.retIso = v || ''; if (v) { const [y, m, d] = v.split('-').map(Number); F.ret = `${d}/${m}/${y}`; } else F.ret = ''; go('confirm'); },
+  'pick-reason': el => { F.reason = el.dataset.k; F.site = ''; F.ret = ''; if (F.reason === 'site') go('site'); else if (F.reason === 'vacation') go('vacation'); else toConfirm(); },
+  'pick-site': el => { F.site = el.dataset.v; toConfirm(); },
+  'vac-skip': () => { F.ret = ''; toConfirm(); },
+  'vac-ok': () => { const v = $('#f-ret')?.value; F.retIso = v || ''; if (v) { const [y, m, d] = v.split('-').map(Number); F.ret = `${d}/${m}/${y}`; } else F.ret = ''; toConfirm(); },
+  'multi-tog': el => { const M = F && F.multi; if (!M) return; const id = el.dataset.id; if (M.sel.has(id)) M.sel.delete(id); else M.sel.add(id); Sheets.redraw(); },
+  'multi-reason': () => go('reason'),
+  'multi-save': () => saveMulti(),
+  'multi-undo': async () => { if (!F || !F.multiRes) return; busy(true, 'جاري التراجع…'); let ok = 0; try { for (const r of [...F.multiRes].reverse()) { try { if (await undoResult(r)) ok++; } catch (e) { console.warn(e); } } } finally { busy(false); } toast(`تراجعت عن ${ok}`); Sheets.closeAll(); },
+  vacDue: () => openVacDue(),
   save: () => flowSave(),
   'undo-last': async () => { if (!F || !F.res) return; busy(true, 'جاري التراجع…'); try { if (await undoResult(F.res)) { toast('تم التراجع'); F.res = null; Sheets.closeAll(); } } catch (e) { toast(errText(e)); } finally { busy(false); } },
   'toast-undo': async () => { if (!lastRes) return; const r = lastRes; lastRes = null; $('#toast').innerHTML = ''; try { if (await undoResult(r)) toast('تم التراجع'); } catch (e) { toast(errText(e)); } },
   'next-q': () => { F.qi++; F.d = F.queue[F.qi]; F.room = null; F.res = null; F.hist = ['review']; if (F.d.h) F.h = F.d.h; Sheets.redraw(); },
   'w-exit': el => { const w = S.workers.get(el.dataset.id); if (!w) return; startFlow('exit', { w, step: 'reason' }); },
   'w-move': el => { const w = S.workers.get(el.dataset.id); if (!w) return; startFlow('move', { w, h: w.h, step: 'room', d: { nat: w.nat } }); },
-  'w-return': el => { const w = S.workers.get(el.dataset.id); if (!w) return; startFlow('return', { w, h: w.h, step: 'room', d: { nat: w.nat } }); },
+  'w-return': el => { const w = S.workers.get(el.dataset.id); if (!w) return; startFlow('return', { w, h: w.h, step: 'room', d: { nat: w.nat, match: w } }); },
   'w-edit': el => openWorkerEdit(el.dataset.id),
   'w-edit-save': el => saveWorkerEdit(el.dataset.id),
   'room-edit': el => openRoomEdit(el.dataset.h, +el.dataset.n, el.dataset.conv === '1'),
@@ -2074,6 +2293,12 @@ const ACT = {
   'send-xlsx': () => { Sheets.closeAll(); openSend(); },
   'send-retry': () => prepSend(),
   'send-go': () => sendGo(),
+  'sum-open': () => openSummary(),
+  'sum-share': () => shareSummary(),
+  'w-del': el => openDelete(el.dataset.id),
+  'w-del-ok': el => deleteWorker(el.dataset.id),
+  'old-final': () => { Sheets.closeAll(); openOldFinals(); },
+  'old-final-del': () => deleteOldFinals(),
   tables: () => openTables(),
   tbl: el => { const t = Sheets.top(); if (el.dataset.h) t.spec.setH(el.dataset.h); if (el.dataset.k) t.spec.setK(el.dataset.k); Sheets.redraw(); },
   import: () => openImport(),
