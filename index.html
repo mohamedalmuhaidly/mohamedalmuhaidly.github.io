@@ -2434,7 +2434,7 @@ function renderMain() {
   let list = rooms(S.h);
   if (S.onlyFree) list = list.filter(r => r.available);
   if (S.onlyMiss) list = list.filter(r => r.miss);
-  main.innerHTML = list.length ? `<div class="grid">${list.map(r => roomTile(r)).join('')}</div>` : `<div class="empty-note">${S.onlyMiss ? 'ما فيه بيانات ناقصة' : 'ما فيه غرف فيها مكان'} في ${H[S.h].name}.</div>`;
+  main.innerHTML = list.length ? `<div class="grid">${list.map(r => roomTile(r)).join('')}</div>` : `<div class="empty-note">${S.onlyMiss ? 'ما فيه بيانات ناقصة' : S.onlyFree ? 'ما فيه غرف فيها مكان' : 'ما فيه غرف'} في ${H[S.h].name}.</div>`;
 }
 function emptyView() {
   return `<div class="card" style="margin-top:12px">
@@ -3026,8 +3026,8 @@ function chime() {
 const ACT = {
   menu: openMenu,
   housing: el => { S.h = el.dataset.h; try { localStorage.setItem('housing-tab-v1', S.h); } catch (e) { /* private mode */ } render(); },
-  onlyFree: () => { S.onlyFree = !S.onlyFree; render(); },
-  onlyMiss: () => { S.onlyMiss = !S.onlyMiss; render(); },
+  onlyFree: () => { S.onlyFree = !S.onlyFree; if (S.onlyFree) S.onlyMiss = false; render(); },   // one filter at a time
+  onlyMiss: () => { S.onlyMiss = !S.onlyMiss; if (S.onlyMiss) S.onlyFree = false; render(); },
   room: el => openRoom(el.dataset.h, +el.dataset.n),
   worker: el => openWorker(el.dataset.id),
   back: () => { const t = Sheets.top(); if (t && t.spec.noBack) return; if (t && t.spec.render === flowView) flowBack(); else Sheets.pop(); },
