@@ -330,6 +330,9 @@ html.big .cmp-d,html.big .cmp-alert,html.big .cmp-tile .cmp-l{font-size:16px}
 .mitem.on{border-color:var(--accent);background:var(--in-soft)}
 .cmp-head{display:grid;gap:8px;margin-bottom:12px}
 .cmp-file{display:flex;gap:10px;align-items:center}
+.cmp-head .cmp-file b{font-size:15px}
+.cmp-head .cmp-file small{display:inline;margin-inline-start:6px}
+.cmp-head .cmp-file span{display:block}
 .cmp-file b{display:block;overflow-wrap:anywhere}
 .cmp-file small{display:block;color:var(--muted);font-size:13px}
 .cmp-btns{display:flex;flex-wrap:wrap;gap:8px}
@@ -1255,7 +1258,9 @@ async function deleteOldFinals() {
    Compare: an Excel file from outside (HR list, old table, …) against the site
    ===================================================================== */
 let CMP = null;   // { file, sheets, si, det, rows, res, tab, off, scopeUser, filled, mapRef }
-const CMP_AR = { name: 'الاسم', emp: 'الرقم الوظيفي', iq: 'رقم الإقامة', room: 'الغرفة', house: 'السكن', nat: 'الجنسية', job: 'المهنة', dept: 'القسم', exp: 'انتهاء الإقامة', status: 'الحالة' };
+const CMP_AR = { name: 'الاسم', emp: 'الرقم الوظيفي', iq: 'رقم الإقامة', room: 'الغرفة', house: 'السكن', nat: 'الجنسية', job: 'المهنة', dept: 'القسم', exp: 'انتهاء الإقامة', status: 'الحالة',
+  beds: 'السراير', people: 'عدد الساكنين', blocked: 'ممنوع التسكين', util: 'نوع الغرفة', note: 'ملاحظة الغرفة' };
+const CMP_SRC = { 'workers-w': 'جدول عمال سكن العمال', 'workers-a': 'جدول عمال السكن الإداري', 'beds-w': 'جدول سراير سكن العمال', 'beds-a': 'جدول سراير السكن الإداري' };
 const CMP_ROLES = ['name', 'emp', 'iq', 'room', 'house', 'nat', 'job', 'dept', 'exp', 'status'];
 // Header words, checked in this order: «Iqama expiry» is the expiry, «Employee name» is the name.
 const CMP_HDR = [
@@ -1384,7 +1389,7 @@ function cmpGuess(rows, det) {
   take('emp', x => (x.int >= 0.6 && x.uniq >= 0.7 && x.med >= 50 && x.iq < 0.3 && x.flag < 0.5) ? x.int * x.uniq : 0, 0.4);
   take('room', x => (x.int >= 0.6 && x.uniq < 0.7 && x.med > 0 && x.med <= 999 && x.flag < 0.5) ? x.int : 0, 0.5);
 }
-function cmpRowsOf(sh, det) {
+function cmpRowsOf(sh, det, src = 0) {
   const rows = sh.rows, C = det.cols, out = [];
   const get = (row, k) => C[k] ? row[C[k]] : null;
   const txt = v => v == null ? '' : clean(typeof v === 'number' ? String(v) : String(v));
@@ -1405,7 +1410,7 @@ function cmpRowsOf(sh, det) {
     const hv = cmpHouse(get(row, 'house')); if (hv) lastHouse = hv;
     const st = get(row, 'status');
     const o = {
-      r, name: displayName(rawName), empRaw: idText(get(row, 'emp')), emp: idNorm(get(row, 'emp')), iq: idNorm(get(row, 'iq')),
+      src, r, name: displayName(rawName), empRaw: idText(get(row, 'emp')), emp: idNorm(get(row, 'emp')), iq: idNorm(get(row, 'iq')),
       room: rn || (carry && rawName ? lastRoom : null), house: hv || (carry ? lastHouse : ''),
       nat: txt(get(row, 'nat')), job: txt(get(row, 'job')), dept: txt(get(row, 'dept')),
       exp: cmpDate(get(row, 'exp')), status: '', flag: null,
@@ -1421,6 +1426,41 @@ function cmpRowsOf(sh, det) {
   return out;
 }
 
+// One of their own worker tables: read it the same way the import does.
+function cmpOwnRows(sh, hr, h, src) {
+  return parseWorkersSheet(sh, hr, h).filter(w => !w.label).map(w => ({
+    src, r: w.ord, name: displayName(w.name), empRaw: /^0+$/.test(w.emp) ? '' : w.emp, emp: idNorm(w.emp), iq: idNorm(w.iq), room: w.room || null, house: h,
+    nat: w.nat, job: w.job, dept: w.dept, exp: null, status: '', flag: w.code, notes: w.notes,
+  }));
+}
+function cmpSameBeds(a, b) { const x = parseBeds(a), y = parseBeds(b); return x.d === y.d && x.s === y.s; }
+function cmpBedsScore(list, h) {   // how well a beds table fits a housing on the site
+  const site = rooms(h); if (!site.length || !list.length) return 0;
+  let hit = 0; for (const fr of list) { const sr = site.find(r => r.n === fr.n); if (sr && (sr.p === fr.persons || cmpSameBeds(sr.beds, fr.beds))) hit++; }
+  return hit / Math.max(list.length, site.length);
+}
+function cmpBuildRows() {
+  CMP.rows = []; CMP.beds = { w: null, a: null };
+  CMP.srcs.forEach((s, i) => {
+    if (s.kind === 'workers-w' || s.kind === 'workers-a') s.rows = cmpOwnRows(s.sheets[s.si], s.hr, s.kind === 'workers-w' ? 'w' : 'a', i);
+    else if (s.kind === 'beds') { s.rows = []; CMP.beds[s.h] = s.list; }
+    else s.rows = cmpRowsOf(s.sheets[s.si], s.det, i);
+    CMP.rows.push(...s.rows);
+  });
+}
+// Their own four tables have fixed columns; anything else is read by its headers.
+function cmpOwnKind(sh) {
+  const d = detectSheet(sh); if (!d) return null;
+  const h = (sh.rows[d.hr] || []).map(v => clean(v));
+  const at = (c, re) => re.test(h[c] || '');
+  const ok = d.kind === 'beds' ? at(1, /غرف/) && at(3, /عدد\s*الاسر/)
+    : d.kind === 'workers-w' ? at(1, /غرف/) && at(2, /name|الاسم/i) && at(4, /employee|الوظيفي/i) && at(7, /iqam|[اإ]قام/i)
+    : at(1, /غرف/) && at(3, /الاسم/) && at(4, /الوظيفي/) && at(5, /[اإ]قام/);
+  return ok ? d : null;
+}
+const cmpGeneric = () => CMP && CMP.srcs ? CMP.srcs.find(s => s.kind === 'generic') : null;
+const cmpLastNote = n => clean(String(n || '').split('|').pop()).slice(0, 45);
+
 /* ---------- matching ---------- */
 function cmpRun() {
   const rows = CMP.rows, site = [...S.workers.values()].filter(w => !w.label);
@@ -1434,7 +1474,7 @@ function cmpRun() {
     return { hit, n: Math.min(A.length, B.length) };
   };
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const res = { pairs: [], ok: [], diff: [], minor: [], fill: [], fileOnly: [], siteOnly: [], alerts: [] };
+  const res = { pairs: [], ok: [], diff: [], minor: [], fill: [], fileOnly: [], fileOut: [], siteOnly: [], alerts: [], rooms: [] };
   const taken = new Map();
   // two people on the site can share a number by mistake: pick the one that fits best and is not taken yet
   const bestOf = (list, x) => {
@@ -1449,19 +1489,21 @@ function cmpRun() {
     else if (x.emp && byEmp.has(x.emp)) { w = bestOf(byEmp.get(x.emp), x); by = 'emp'; }
     else if (x.name && toks(x.name).length >= 2) {
       const sc = [];
-      for (const s of site) { const h = hits(x.name, s.name); if (h.hit >= 2 && h.hit >= Math.ceil(h.n * 0.6)) sc.push([s, h.hit + (s.code === 1 ? 0.5 : 0) + (x.room && s.room === x.room ? 1 : 0)]); }
+      // by name only when nothing says it is someone else: not matched already, and no different number
+      const clash = s => (x.emp && idNorm(s.emp) && x.emp !== idNorm(s.emp)) || (x.iq && idNorm(s.iq) && x.iq !== idNorm(s.iq));
+      for (const s of site) { if (taken.has(s.id) || clash(s)) continue; const h = hits(x.name, s.name); if (h.hit >= 2 && h.hit >= Math.ceil(h.n * 0.6)) sc.push([s, h.hit + (s.code === 1 ? 0.5 : 0) + (x.room && s.room === x.room ? 1 : 0)]); }
       sc.sort((a, b) => b[1] - a[1]);
       if (sc.length && (sc.length === 1 || sc[0][1] > sc[1][1])) { w = sc[0][0]; by = 'name'; }
     }
     if (w && taken.has(w.id)) { res.alerts.push({ t: 'dup', w, x, text: `مكرر في الملف مرتين (سطر ${rows[taken.get(w.id)].r} وسطر ${x.r})` }); return; }
-    if (!w) { res.fileOnly.push({ i, x }); return; }
+    if (!w) { (x.flag === 0 ? res.fileOut : res.fileOnly).push({ i, x }); return; }
     taken.set(w.id, i);
     const p = { i, x, w, by, d: [], m: [] };
     const sameHouse = !x.house || x.house === w.h;
     if (x.house && x.house !== w.h) p.d.push({ k: 'house', site: H[w.h].name, file: H[x.house].name });
-    if (x.room && sameHouse && x.room !== w.room) p.d.push({ k: 'room', site: w.room, file: x.room });
-    if (x.flag === 1 && w.code !== 1) p.d.push({ k: 'status', site: 'خارج السكن', file: 'ساكن' });
-    if (x.flag === 0 && w.code === 1) p.d.push({ k: 'status', site: 'ساكن', file: 'خارج السكن' });
+    if (x.room && sameHouse && x.room !== w.room && w.code === 1 && x.flag !== 0) p.d.push({ k: 'room', site: w.room, file: x.room });
+    if (x.flag === 1 && w.code !== 1) p.d.push({ k: 'status', site: 'خارج السكن' + (w.notes ? ` (${cmpLastNote(w.notes)})` : ''), file: 'ساكن' + (x.room ? ` في غرفة ${x.room}` : '') });
+    if (x.flag === 0 && w.code === 1) p.d.push({ k: 'status', site: 'ساكن', file: 'خارج السكن' + (x.notes ? ` (${cmpLastNote(x.notes)})` : '') });
     if (x.status === 'vac' && w.code === 1) p.d.push({ k: 'status', site: 'ساكن', file: 'إجازة' });
     if (x.status === 'active' && w.code !== 1) p.d.push({ k: 'status', site: 'خارج السكن', file: 'على رأس العمل' });
     if (by !== 'emp' && x.emp && idNorm(w.emp) && x.emp !== idNorm(w.emp)) p.d.push({ k: 'emp', site: w.emp, file: x.empRaw });
@@ -1494,7 +1536,7 @@ function cmpRun() {
   });
   // numbers written twice in the file, or a bad iqama number
   const seen = { iq: new Map(), emp: new Map() };
-  rows.forEach(x => { for (const k of ['iq', 'emp']) if (x[k]) { if (!seen[k].has(x[k])) seen[k].set(x[k], []); seen[k].get(x[k]).push(x); } });
+  rows.forEach(x => { if (x.flag === 0) return; for (const k of ['iq', 'emp']) if (x[k]) { if (!seen[k].has(x[k])) seen[k].set(x[k], []); seen[k].get(x[k]).push(x); } });
   for (const k of ['iq', 'emp']) for (const [v, list] of seen[k]) if (list.length > 1 && !res.alerts.some(a => a.t === 'dup' && a.x === list[1]))
     res.alerts.push({ t: 'dupnum', x: list[1], text: `${CMP_AR[k]} ${v} مكتوب ${list.length} مرات في الملف (سطور ${list.map(y => y.r).join('، ')})` });
   rows.forEach(x => { if (x.iq && !/^[12]\d{9}$/.test(x.iq)) res.alerts.push({ t: 'badiq', x, text: `رقم الإقامة «${x.iq}» مش 10 أرقام (سطر ${x.r})` }); });
@@ -1509,6 +1551,22 @@ function cmpRun() {
   const scope = CMP.scopeUser || CMP.scopeAuto;
   if (res.pairs.length) res.siteOnly = live.filter(w => scope.includes(w.h) && !taken.has(w.id)).sort((a, b) => a.h.localeCompare(b.h) || a.room - b.room);
   res.scope = scope;
+  for (const h of ['w', 'a']) {
+    const list = CMP.beds && CMP.beds[h]; if (!list) continue;
+    const site = rooms(h);
+    for (const fr of list) {
+      const sr = site.find(r => r.n === fr.n); const d = [];
+      if (!sr || sr.phantom) { res.rooms.push({ h, n: fr.n, d: [{ k: 'room', site: 'مش موجودة', file: fr.beds || 'موجودة' }] }); continue; }
+      if (!cmpSameBeds(sr.beds, fr.beds)) d.push({ k: 'beds', site: sr.beds || 'مفيش', file: fr.beds || 'مفيش' });
+      if (!!fr.blocked !== !!sr.blocked) d.push({ k: 'blocked', site: sr.blocked ? 'ممنوع' : 'عادي', file: fr.blocked ? 'ممنوع' : 'عادي' });
+      if (!!fr.util !== !!(sr.util || sr.wasUtil)) d.push({ k: 'util', site: sr.util || sr.wasUtil ? 'خدمات أو تخزين' : 'سكن', file: fr.util ? 'خدمات أو تخزين' : 'سكن' });
+      if (fr.persons !== sr.p) d.push({ k: 'people', site: sr.p, file: fr.persons, minor: true });
+      if (normAr(fr.note) !== normAr(sr.note) && (fr.note || sr.note)) d.push({ k: 'note', site: sr.note || '—', file: fr.note || '—', minor: true });
+      if (d.length) res.rooms.push({ h, n: fr.n, d });
+    }
+    for (const sr of site) if (!sr.phantom && !list.some(fr => fr.n === sr.n)) res.rooms.push({ h, n: sr.n, d: [{ k: 'room', site: sr.beds || 'موجودة', file: 'مش موجودة' }] });
+    res.rooms.sort((a, b) => (a.d.every(x => x.minor) - b.d.every(x => x.minor)) || a.h.localeCompare(b.h) || a.n - b.n);
+  }
   CMP.res = res; CMP.mapRef = S.workers;
 }
 
@@ -1516,40 +1574,59 @@ function cmpRun() {
 function openCompare() {
   if (!CMP) CMP = { stage: 'pick', tab: 'diff', off: new Set() };
   if (!$('#file-cmp')) {
-    const inp = document.createElement('input'); inp.type = 'file'; inp.id = 'file-cmp'; inp.hidden = true;
+    const inp = document.createElement('input'); inp.type = 'file'; inp.id = 'file-cmp'; inp.hidden = true; inp.multiple = true;
     inp.accept = '.xlsx,.xlsm,.csv,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv';
-    inp.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (f) cmpLoad(f); });
+    inp.addEventListener('change', ev => { const fs = [...(ev.target.files || [])]; ev.target.value = ''; if (fs.length) cmpLoad(fs); });
     document.body.appendChild(inp);
   }
   Sheets.push({ live: true, render: cmpView });
 }
-async function cmpLoad(file) {
+async function cmpLoad(fileList) {
+  const files = Array.isArray(fileList) ? fileList : [fileList];
   if (!CMP) CMP = { tab: 'diff', off: new Set() };
-  Object.assign(CMP, { stage: 'reading', err: '', file: file.name, res: null, filled: null, scopeUser: null, off: new Set() });
+  Object.assign(CMP, { stage: 'reading', err: '', file: files.map(f => f.name).join('، '), res: null, filled: null, scopeUser: null, off: new Set(), srcs: [], rows: [], beds: { w: null, a: null } });
   Sheets.redraw();
   try {
-    const sheets = await cmpReadFile(file);
-    if (!sheets.length) throw { code: 'empty' };
-    let best = null;
-    sheets.forEach((sh, si) => { const det = cmpDetect(sh); const rows = cmpRowsOf(sh, det); const sc = (det.cols.name ? 2 : 0) + (det.cols.emp ? 2 : 0) + (det.cols.iq ? 2 : 0) + Object.keys(det.cols).length + Math.min(rows.length, 5000) / 5000; if (rows.length && (!best || sc > best.sc)) best = { si, det, rows, sc }; });
-    if (!best) throw { code: 'nonames' };
-    Object.assign(CMP, { sheets, si: best.si, det: best.det, rows: best.rows });
-    if (!best.det.cols.name && !best.det.cols.emp && !best.det.cols.iq) { CMP.stage = 'res'; CMP.res = null; Sheets.redraw(); openCmpMap(); return; }
+    const srcs = []; let lastErr = null;
+    for (const f of files) {
+      let sheets;
+      try { sheets = await cmpReadFile(f); } catch (e) { lastErr = e; continue; }
+      if (!sheets.length) { lastErr = lastErr || { code: 'empty' }; continue; }
+      let own = null;                                   // one of their own four tables?
+      for (let i = 0; i < sheets.length && !own; i++) { const d = cmpOwnKind(sheets[i]); if (d) own = { si: i, ...d }; }
+      if (own) { srcs.push({ file: f.name, kind: own.kind, sheets, si: own.si, hr: own.hr }); continue; }
+      let best = null;                                  // any other file: find the columns
+      sheets.forEach((sh, si) => { const det = cmpDetect(sh); const rows = cmpRowsOf(sh, det); const sc = (det.cols.name ? 2 : 0) + (det.cols.emp ? 2 : 0) + (det.cols.iq ? 2 : 0) + Object.keys(det.cols).length + Math.min(rows.length, 5000) / 5000; if (rows.length && (!best || sc > best.sc)) best = { si, det, sc }; });
+      if (best) srcs.push({ file: f.name, kind: 'generic', sheets, si: best.si, det: best.det });
+      else lastErr = { code: 'nonames' };
+    }
+    if (!srcs.length) throw lastErr || { code: 'nonames' };
+    const beds = srcs.filter(s => s.kind === 'beds');      // which housing is each beds table for?
+    for (const b of beds) b.list = parseBedsSheet(b.sheets[b.si], b.hr).list;
+    const lean = b => cmpBedsScore(b.list, 'w') - cmpBedsScore(b.list, 'a');
+    if (beds.length === 1) beds[0].h = lean(beds[0]) >= 0 ? 'w' : 'a';
+    else if (beds.length >= 2) { const [b1, b2] = beds; if (lean(b1) >= lean(b2)) { b1.h = 'w'; b2.h = 'a'; } else { b1.h = 'a'; b2.h = 'w'; } beds.slice(2).forEach(b => { b.skip = true; }); }
+    CMP.srcs = srcs.filter(s => !s.skip);
+    cmpBuildRows();
+    const g = cmpGeneric();
+    if (CMP.srcs.length === 1 && g && !g.det.cols.name && !g.det.cols.emp && !g.det.cols.iq) { CMP.stage = 'res'; CMP.res = null; Sheets.redraw(); openCmpMap(); return; }
     cmpRun(); CMP.stage = 'res';
-    CMP.tab = CMP.res.diff.length ? 'diff' : CMP.res.fill.length ? 'fill' : CMP.res.fileOnly.length ? 'new' : CMP.res.siteOnly.length ? 'gone' : CMP.res.alerts.length ? 'alerts' : 'ok';
+    const r = CMP.res;
+    CMP.tab = r.diff.length ? 'diff' : r.fill.length ? 'fill' : r.fileOnly.length ? 'new' : r.siteOnly.length ? 'gone' : r.rooms.length ? 'rooms' : r.alerts.length ? 'alerts' : 'ok';
+    if (!CMP.rows.length && (CMP.beds.w || CMP.beds.a)) CMP.tab = 'rooms';
   } catch (e) {
     if (!e || !['xls', 'empty', 'nonames'].includes(e.code)) console.warn('compare', e);
     CMP.stage = 'pick';
     CMP.err = e && e.code === 'xls' ? 'الملف ده بصيغة xls القديمة. افتحه في إكسل واحفظه «xlsx» وجرّب تاني.'
       : e && e.code === 'empty' ? 'الملف فاضي أو مفيهوش جدول.'
-      : e && e.code === 'nonames' ? 'الملف ده مفيهوش أسامي أو أرقام عمال (يمكن يكون جدول السراير).'
+      : e && e.code === 'nonames' ? 'الملف ده مفيهوش أسامي أو أرقام عمال.'
       : e && e.message === 'nostream' ? 'المتصفح قديم، مش هيقدر يفتح ملفات الإكسل.' : 'مقدرتش أفتح الملف. اتأكد إنه ملف إكسل (xlsx) أو csv.';
   }
   Sheets.redraw();
 }
 function cmpColLabel(c) {
-  if (!CMP || !c) return 'مش موجود';
-  const sh = CMP.sheets[CMP.si], hr = CMP.det.hr;
+  const g = cmpGeneric(); if (!g || !c) return 'مش موجود';
+  const sh = g.sheets[g.si], hr = g.det.hr;
   const head = hr ? clean(String(sh.rows[hr][c] ?? '')) : '';
   const samples = [];
   for (let r = hr + 1; r < sh.rows.length && samples.length < 2; r++) { const v = sh.rows[r] && sh.rows[r][c]; if (v != null && String(v).trim() !== '') samples.push(clean(String(v)).slice(0, 22)); }
@@ -1557,17 +1634,19 @@ function cmpColLabel(c) {
 }
 const CMP_TABS = [
   ['diff', 'مختلفين', 'warn', 'alert'], ['fill', 'ناقص والملف فيه', 'info', 'plus'], ['new', 'في الملف ومش في الموقع', 'out', 'user'],
-  ['gone', 'في الموقع ومش في الملف', 'out', 'home'], ['alerts', 'تنبيهات', 'warn', 'alert'], ['ok', 'مطابقين', 'in', 'check'],
+  ['gone', 'في الموقع ومش في الملف', 'out', 'home'], ['rooms', 'غرف مختلفة', 'info', 'door'], ['alerts', 'تنبيهات', 'warn', 'alert'], ['ok', 'مطابقين', 'in', 'check'],
 ];
+const cmpTabs = () => CMP_TABS.filter(t => t[0] !== 'rooms' || (CMP.beds && (CMP.beds.w || CMP.beds.a)));
 function cmpCount(k) {
   const r = CMP.res; if (!r) return 0;
-  return { diff: r.diff.length + r.minor.length, fill: r.fill.length, new: r.fileOnly.length, gone: r.siteOnly.length, alerts: r.alerts.length, ok: r.ok.length }[k];
+  return { diff: r.diff.length + r.minor.length, fill: r.fill.length, new: r.fileOnly.length, gone: r.siteOnly.length, rooms: r.rooms.length, alerts: r.alerts.length, ok: r.ok.length }[k];
 }
 function cmpView() {
   const title = `${ICON.compare}مقارنة مع ملف إكسل`;
   if (!CMP || CMP.stage === 'pick') {
     return { title, body: `<div class="card cmp-intro">
-        <p class="lead" style="margin-top:0">اختار ملف إكسل من بره (مثلاً كشف الموظفين)، والصفحة هتقارنه بالموقع.</p>
+        <p class="lead" style="margin-top:0">اختار ملف إكسل من بره (مثلاً كشف الموظفين أو جداولك الأربعة)، والصفحة هتقارنه بالموقع.</p>
+        <p class="muted">تقدر تختار أكتر من ملف مرة واحدة: جدول العمال وجدول السراير للسكنين.</p>
         <p class="muted">هيطلعلك: مين في الملف ومش ساكن، ومين ساكن ومش في الملف، والغرف والأرقام المختلفة، والناقص اللي الملف يكمّله، والإقامات اللي خلصت.</p>
         ${CMP && CMP.err ? `<div class="warnbox">${ICON.alert}<span>${esc(CMP.err)}</span></div>` : ''}</div>`,
       foot: `<button class="big go" data-act="cmp-pick">${ICON.upload}<span>اختيار ملف الإكسل</span></button>` };
@@ -1575,12 +1654,16 @@ function cmpView() {
   if (CMP.stage === 'reading') return { title, body: `<div class="center"><div class="spin"></div><p class="lead">بقرا الملف…</p></div>` };
   if (!CMP.res) return { title, body: `<div class="warnbox">${ICON.alert}<span>معرفتش فين عمود الاسم أو الأرقام في الملف. اضغط «الأعمدة» وحدّدها.</span></div>`, foot: `<button class="big neutral" data-act="cmp-map">${ICON.table}<span>الأعمدة</span></button>` };
   if (CMP.mapRef !== S.workers) cmpRun();
-  const r = CMP.res, sh = CMP.sheets[CMP.si];
-  const found = CMP_ROLES.filter(k => CMP.det.cols[k]).map(k => CMP_AR[k]).join('، ');
-  const tiles = CMP_TABS.map(([k, label, tone, icon]) => `<button class="cmp-tile t-${tone} ${CMP.tab === k ? 'on' : ''}" data-act="cmp-tab" data-k="${k}">${ICON[icon]}<span class="cmp-n num">${cmpCount(k)}</span><span class="cmp-l">${label}</span></button>`).join('');
+  const r = CMP.res, g = cmpGeneric();
+  const tiles = cmpTabs().map(([k, label, tone, icon]) => `<button class="cmp-tile t-${tone} ${CMP.tab === k ? 'on' : ''}" data-act="cmp-tab" data-k="${k}">${ICON[icon]}<span class="cmp-n num">${cmpCount(k)}</span><span class="cmp-l">${label}</span></button>`).join('');
   const scopeTxt = r.scope.map(h => H[h].name).join(' و');
-  const head = `<div class="cmp-head"><div class="cmp-file">${ICON.table}<span><b dir="auto">${esc(CMP.file)}</b><small><bdi>${esc(sh.name)}</bdi> · ${CMP.rows.length} سطر · لقيت ${r.pairs.length} منهم في الموقع</small><small>الأعمدة: ${esc(found)}</small></span></div>
-    <div class="cmp-btns"><button class="small-btn" data-act="cmp-map">${ICON.edit}الأعمدة</button><button class="small-btn" data-act="cmp-pick">${ICON.upload}ملف تاني</button></div></div>`;
+  const srcLine = s => s.kind === 'generic' ? `<bdi>${esc(s.sheets[s.si].name)}</bdi> · ${s.rows.length} سطر · الأعمدة: ${esc(CMP_ROLES.filter(k => s.det.cols[k]).map(k => CMP_AR[k]).join('، '))}`
+    : s.kind === 'beds' ? `${CMP_SRC['beds-' + s.h]} · ${s.list.length} غرفة` : `${CMP_SRC[s.kind]} · ${s.rows.length} سطر`;
+  const srcRow = s => s.kind === 'generic' ? `<div class="cmp-file">${ICON.table}<span><b dir="auto">${esc(s.file)}</b><small>${srcLine(s)}</small></span></div>`
+    : `<div class="cmp-file">${ICON.table}<span><b>${s.kind === 'beds' ? CMP_SRC['beds-' + s.h] : CMP_SRC[s.kind]}</b><small>${s.kind === 'beds' ? `${s.list.length} غرفة` : `${s.rows.length} سطر`}</small></span></div>`;
+  const head = `<div class="cmp-head">${CMP.srcs.map(srcRow).join('')}
+    <small class="muted">${CMP.rows.length ? `لقيت ${r.pairs.length} من ${CMP.rows.length} اللي في ${CMP.srcs.length > 1 ? 'الملفات' : 'الملف'} في الموقع` : ''}</small>
+    <div class="cmp-btns">${g ? `<button class="small-btn" data-act="cmp-map">${ICON.edit}الأعمدة</button>` : ''}<button class="small-btn" data-act="cmp-pick">${ICON.upload}ملفات تانية</button></div></div>`;
   let list = '', foot = `<button class="big neutral" data-act="cmp-export">${ICON.download}<span>تنزيل التقرير</span></button>`;
   const T = CMP.tab;
   if (T === 'diff') {
@@ -1601,35 +1684,43 @@ function cmpView() {
     list = r.fileOnly.length ? `<p class="muted" style="margin-top:0">دول في الملف ومش لاقيهم في الموقع. لو حد فيهم ساكن فعلاً اضغط «دخّله السكن».</p>${r.fileOnly.map(({ i, x }) => `<div class="cmp-item"><div class="wrow static"><span class="flag emoji">${natFlag(x.nat)}</span><span class="wb"><span class="wn">${esc(x.name || '—')}</span>
         <span class="ws">${[x.empRaw ? `<span class="num">${esc(x.empRaw)}</span>` : '', x.iq ? `إقامة <span class="num">${esc(x.iq)}</span>` : '', x.room ? `غرفة <span class="num">${x.room}</span>` : '', x.job ? esc(jobInfo(x.job).ar) : '', x.status === 'final' ? 'خروج نهائي' : x.status === 'vac' ? 'إجازة' : ''].filter(Boolean).join(' · ')}</span></span></div>
         ${x.status === 'final' ? '' : `<button class="small-btn" data-act="cmp-add" data-i="${i}">${ICON.in}دخّله السكن</button>`}</div>`).join('')}`
-      : '<div class="empty-note">كل اللي في الملف موجودين في الموقع.</div>';
+      : '<div class="empty-note">كل اللي ساكنين في الملف موجودين في الموقع.</div>';
+    if (r.fileOut.length) list += `<div class="sec-title">${ICON.note}خارج السكن في الملف ومش موجودين في الموقع: ${r.fileOut.length}</div><div class="list">${r.fileOut.map(({ x }) => `<div class="wrow static gone"><span class="flag emoji">${natFlag(x.nat)}</span><span class="wb"><span class="wn">${esc(x.name || '—')}</span><span class="ws">${[x.empRaw ? `<span class="num">${esc(x.empRaw)}</span>` : '', x.room ? `غرفة <span class="num">${x.room}</span>` : '', esc(cmpLastNote(x.notes))].filter(Boolean).join(' · ')}</span></span></div>`).join('')}</div>`;
   } else if (T === 'gone') {
     const seg = `<div class="seg" style="margin-bottom:10px">${[['w', H.w.name], ['a', H.a.name], ['wa', 'الاتنين']].map(([k, l]) => `<button class="${r.scope.join('') === k ? 'on' : ''}" data-act="cmp-scope" data-k="${k}">${l}</button>`).join('')}</div>`;
     list = !r.pairs.length ? '<div class="empty-note">ولا عامل من الملف موجود في الموقع. اتأكد إن ده الملف الصح، أو اضغط «الأعمدة».</div>'
       : !r.scope.length ? `${seg}<p class="muted" style="margin-top:0">الملف فيه جزء بس من العمال، فمش هقدر أقول مين مش موجود فيه. لو الملف فيه كل عمال سكن معيّن، اختاره من فوق.</p>`
       : `${seg}<p class="muted" style="margin-top:0">ساكنين في ${scopeTxt} ومش موجودين في الملف.</p>${r.siteOnly.length ? `<div class="list">${r.siteOnly.map(w => workerRow(w)).join('')}</div>` : '<div class="empty-note">مفيش.</div>'}`;
+  } else if (T === 'rooms') {
+    list = r.rooms.length ? r.rooms.map(x => `<div class="cmp-item"><div class="cmp-file">${ICON.door}<b>${H[x.h].name}: غرفة <span class="num">${x.n}</span></b></div>
+      <div class="cmp-ds">${x.d.map(d => `<div class="cmp-d ${d.minor ? 'minor' : ''}"><b>${CMP_AR[d.k]}</b><span>الموقع: <bdi class="v">${esc(d.site)}</bdi></span><span>الملف: <bdi class="v">${esc(d.file)}</bdi></span></div>`).join('')}</div>
+      ${x.d.some(d => d.k === 'room' && d.site === 'مش موجودة') ? '' : `<button class="small-btn" data-act="room" data-h="${x.h}" data-n="${x.n}">${ICON.door}افتح الغرفة</button>`}</div>`).join('')
+      : '<div class="empty-note">الغرف زي بعض.</div>';
   } else if (T === 'alerts') {
     list = r.alerts.length ? r.alerts.map(a => `<div class="cmp-item"><div class="cmp-alert">${ICON.alert}<span>${esc(a.text)}</span></div>${a.w ? workerRow(a.w) : a.x && a.x.name ? `<div class="muted">${esc(a.x.name)}${a.x.empRaw ? ` · <span class="num">${esc(a.x.empRaw)}</span>` : ''}</div>` : ''}</div>`).join('')
       : '<div class="empty-note">مفيش تنبيهات.</div>';
   } else {
     list = r.ok.length ? `<div class="list">${r.ok.slice(0, 300).map(p => workerRow(p.w)).join('')}</div>${r.ok.length > 300 ? `<p class="muted">و${r.ok.length - 300} كمان…</p>` : ''}` : '<div class="empty-note">مفيش.</div>';
   }
-  return { title, body: `<div class="cmp">${head}<div class="cmp-tiles">${tiles}</div><div class="sec-title">${ICON[CMP_TABS.find(t => t[0] === T)[3]]}${CMP_TABS.find(t => t[0] === T)[1]}</div><div class="cmp-list">${list}</div></div>`, foot };
+  const tt = CMP_TABS.find(t => t[0] === T) || CMP_TABS[0];
+  return { title, body: `<div class="cmp">${head}<div class="cmp-tiles">${tiles}</div><div class="sec-title">${ICON[tt[3]]}${tt[1]}</div><div class="cmp-list">${list}</div></div>`, foot };
 }
 function openCmpMap() {
   Sheets.push({ live: true, render() {
-    if (!CMP || !CMP.det) return { title: 'الأعمدة', body: '' };
-    const sheetsSeg = CMP.sheets.length > 1 ? `<div class="sec-title">${ICON.table}الورقة</div><div class="chooser">${CMP.sheets.map((s, i) => `<button class="opt ${i === CMP.si ? 'sel' : ''}" data-act="cmp-sheet" data-i="${i}">${esc(s.name)}</button>`).join('')}</div>` : '';
-    const rows = CMP_ROLES.map(k => `<button class="mitem" data-act="cmp-role" data-k="${k}"><span>${CMP_AR[k]}<small dir="auto">${esc(cmpColLabel(CMP.det.cols[k]))}</small></span></button>`).join('');
-    return { title: `${ICON.table}الأعمدة`, body: `${sheetsSeg}<p class="muted">اتأكد إن كل خانة مربوطة بالعمود الصح. اضغط على الخانة عشان تغيّرها.</p><div class="menu">${rows}</div>`,
+    const g = cmpGeneric();
+    if (!g) return { title: 'الأعمدة', body: '' };
+    const sheetsSeg = g.sheets.length > 1 ? `<div class="sec-title">${ICON.table}الورقة</div><div class="chooser">${g.sheets.map((s, i) => `<button class="opt ${i === g.si ? 'sel' : ''}" data-act="cmp-sheet" data-i="${i}">${esc(s.name)}</button>`).join('')}</div>` : '';
+    const rows = CMP_ROLES.map(k => `<button class="mitem" data-act="cmp-role" data-k="${k}"><span>${CMP_AR[k]}<small dir="auto">${esc(cmpColLabel(g.det.cols[k]))}</small></span></button>`).join('');
+    return { title: `${ICON.table}الأعمدة`, body: `${CMP.srcs.length > 1 ? `<p class="lead" style="margin-top:0" dir="auto">${esc(g.file)}</p>` : ''}${sheetsSeg}<p class="muted">اتأكد إن كل خانة مربوطة بالعمود الصح. اضغط على الخانة عشان تغيّرها.</p><div class="menu">${rows}</div>`,
       foot: `<button class="big go" data-act="cmp-remap">${ICON.check}<span>قارن</span></button>` };
   } });
 }
 function openCmpCol(k) {
-  const sh = CMP.sheets[CMP.si], max = cmpMaxCol(sh.rows, CMP.det.hr);
+  const g = cmpGeneric(), sh = g.sheets[g.si], max = cmpMaxCol(sh.rows, g.det.hr);
   Sheets.push({ render: () => ({
     title: `${ICON.table}${CMP_AR[k]}`,
     body: `<div class="menu"><button class="mitem" data-act="cmp-col" data-k="${k}" data-c="0"><span>مش موجود في الملف</span></button>
-      ${Array.from({ length: max }, (_, j) => j + 1).map(c => `<button class="mitem ${CMP.det.cols[k] === c ? 'on' : ''}" data-act="cmp-col" data-k="${k}" data-c="${c}"><span dir="auto">${esc(cmpColLabel(c))}</span></button>`).join('')}</div>`,
+      ${Array.from({ length: max }, (_, j) => j + 1).map(c => `<button class="mitem ${g.det.cols[k] === c ? 'on' : ''}" data-act="cmp-col" data-k="${k}" data-c="${c}"><span dir="auto">${esc(cmpColLabel(c))}</span></button>`).join('')}</div>`,
   }) });
 }
 async function cmpFill() {
@@ -1668,16 +1759,17 @@ async function cmpExport() {
   const wcells = w => [H[w.h].name, w.room, displayName(w.name), w.emp, w.iq];
   const W = ['السكن', 'الغرفة', 'الاسم', 'الرقم الوظيفي', 'رقم الإقامة'];
   const sheets = [
-    sheet('ملخص', ['البند', 'العدد'], [['الملف', CMP.file], ['سطور الملف', CMP.rows.length], ['موجودين في الموقع', r.pairs.length], ...CMP_TABS.map(([k, l]) => [l, cmpCount(k)]), ['التاريخ', todayStr()]], [34, 40]),
+    sheet('ملخص', ['البند', 'العدد'], [['الملفات', CMP.file], ['سطور العمال', CMP.rows.length], ['موجودين في الموقع', r.pairs.length], ...cmpTabs().map(([k, l]) => [l, cmpCount(k)]), ['التاريخ', todayStr()]], [34, 40]),
     sheet('مختلفين', [...W, 'الخانة', 'في الموقع', 'في الملف'], [...r.diff, ...r.minor].flatMap(p => [...p.d, ...p.m].map(d => [...wcells(p.w), CMP_AR[d.k], d.site, d.file])), [14, 8, 30, 14, 14, 16, 20, 20]),
     sheet('ناقص والملف فيه', [...W, 'الناقص', 'من الملف'], r.fill.flatMap(f => Object.entries(f.set).map(([k, v]) => [...wcells(f.w), CMP_AR[k], v])), [14, 8, 30, 14, 14, 16, 20]),
-    sheet('في الملف مش في الموقع', ['سطر', 'الاسم', 'الرقم الوظيفي', 'رقم الإقامة', 'الغرفة', 'الجنسية', 'المهنة'], r.fileOnly.map(({ x }) => [x.r, x.name, x.empRaw, x.iq, x.room || '', x.nat, x.job]), [7, 30, 14, 14, 8, 14, 16]),
+    sheet('في الملف مش في الموقع', ['السكن', 'سطر', 'الاسم', 'الرقم الوظيفي', 'رقم الإقامة', 'الغرفة', 'الجنسية', 'المهنة', 'في الملف'], [...r.fileOnly, ...r.fileOut].map(({ x }) => [x.house ? H[x.house].name : '', x.r, x.name, x.empRaw, x.iq, x.room || '', x.nat, x.job, x.flag === 0 ? 'خارج السكن' : 'ساكن']), [14, 7, 30, 14, 14, 8, 14, 16, 12]),
     sheet('في الموقع مش في الملف', W, r.siteOnly.map(wcells), [14, 8, 30, 14, 14]),
+    ...(r.rooms.length ? [sheet('غرف مختلفة', ['السكن', 'الغرفة', 'الخانة', 'في الموقع', 'في الملف'], r.rooms.flatMap(x => x.d.map(d => [H[x.h].name, x.n, CMP_AR[d.k], d.site, d.file])), [14, 8, 16, 22, 22])] : []),
     sheet('تنبيهات', ['التنبيه', 'الاسم', 'الرقم الوظيفي', 'رقم الإقامة'], r.alerts.map(a => [a.text, a.w ? displayName(a.w.name) : (a.x && a.x.name) || '', a.w ? a.w.emp : (a.x && a.x.empRaw) || '', a.w ? a.w.iq : (a.x && a.x.iq) || '']), [60, 30, 14, 14]),
   ];
   try {
     const blob = await buildXlsx(sheets, book);
-    const f = new File([blob], `مقارنة ${CMP.file.replace(/\.[^.]+$/, '')} ${isoDay()}.xlsx`, { type: XLSX_TYPE });
+    const f = new File([blob], `مقارنة ${CMP.srcs.length > 1 ? 'الجداول' : CMP.file.replace(/\.[^.]+$/, '')} ${isoDay()}.xlsx`, { type: XLSX_TYPE });
     if (canShareFile(f)) { try { await navigator.share({ files: [f] }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
     saveFile(f);
   } catch (e) { console.warn('cmp export', e); toast('مقدرتش أجهّز التقرير'); }
@@ -1685,7 +1777,7 @@ async function cmpExport() {
 const CMP_ACT = {
   'cmp-open': () => { Sheets.closeAll(); openCompare(); },
   'cmp-pick': () => { const i = $('#file-cmp'); if (i) i.click(); },
-  'cmp-tab': el => { CMP.tab = el.dataset.k; Sheets.redraw(); },
+  'cmp-tab': el => { CMP.tab = el.dataset.k; Sheets.redraw(); const t = Sheets.top(), x = t && t.el.querySelector('.cmp-list'); if (x && x.previousElementSibling) x.previousElementSibling.scrollIntoView({ block: 'start', behavior: 'smooth' }); },
   'cmp-tick': el => { const id = el.dataset.id; if (CMP.off.has(id)) CMP.off.delete(id); else CMP.off.add(id); Sheets.redraw(); },
   'cmp-fill': () => cmpFill(),
   'cmp-undo': () => cmpUndo(),
@@ -1693,9 +1785,9 @@ const CMP_ACT = {
   'cmp-scope': el => { CMP.scopeUser = el.dataset.k === 'wa' ? ['w', 'a'] : [el.dataset.k]; cmpRun(); Sheets.redraw(); },
   'cmp-map': () => openCmpMap(),
   'cmp-role': el => openCmpCol(el.dataset.k),
-  'cmp-col': el => { const k = el.dataset.k, c = +el.dataset.c; for (const r of CMP_ROLES) if (c && CMP.det.cols[r] === c) delete CMP.det.cols[r]; if (c) CMP.det.cols[k] = c; else delete CMP.det.cols[k]; Sheets.pop(); },
-  'cmp-sheet': el => { CMP.si = +el.dataset.i; CMP.det = cmpDetect(CMP.sheets[CMP.si]); Sheets.redraw(); },
-  'cmp-remap': () => { CMP.rows = cmpRowsOf(CMP.sheets[CMP.si], CMP.det); CMP.scopeUser = null; CMP.off = new Set(); CMP.filled = null; if (CMP.det.cols.name || CMP.det.cols.emp || CMP.det.cols.iq) cmpRun(); else CMP.res = null; Sheets.pop(); Sheets.redraw(); },
+  'cmp-col': el => { const g = cmpGeneric(), k = el.dataset.k, c = +el.dataset.c; for (const r of CMP_ROLES) if (c && g.det.cols[r] === c) delete g.det.cols[r]; if (c) g.det.cols[k] = c; else delete g.det.cols[k]; Sheets.pop(); },
+  'cmp-sheet': el => { const g = cmpGeneric(); g.si = +el.dataset.i; g.det = cmpDetect(g.sheets[g.si]); Sheets.redraw(); },
+  'cmp-remap': () => { const g = cmpGeneric(); cmpBuildRows(); CMP.scopeUser = null; CMP.off = new Set(); CMP.filled = null; if (CMP.srcs.length > 1 || g.det.cols.name || g.det.cols.emp || g.det.cols.iq) cmpRun(); else CMP.res = null; Sheets.pop(); Sheets.redraw(); },
   'cmp-add': el => {
     const x = CMP && CMP.rows[+el.dataset.i]; if (!x) return;
     startFlow('add', { h: x.house || S.h });
