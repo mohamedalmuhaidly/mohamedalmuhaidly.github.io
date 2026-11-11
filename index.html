@@ -1306,8 +1306,9 @@ function parseBlock(b, whole) {
     if (c.length === 1) d.emp = c[0];
   }
   if (!d.name) {
-    const cand = b.lines.filter((it, i) => !used.has(i) && !it.key).map(it => it.line.replace(/[^\p{L}\s.'-]/gu, '').trim())
-      .filter(s => s && s.split(/\s+/).length >= 2 && s.split(/\s+/).length <= 5 && s.length <= 40 && !canonNat(s) && !canon(JOB_IX, s, true) && !/سكن|غرف|عامل|جديد|اقام|إقام|وظيف|جنسي|مهن|السلام|عليكم|صباح|مساء|تحي|new|room|please/i.test(s));
+    const cand = b.lines.filter((it, i) => !used.has(i) && !it.key).map(it => it.line.replace(/^[^\p{L}]*(?:ال)?(?:عامل|موظف)\s+/u, '').replace(/[^\p{L}\s.'-]/gu, '').trim())
+      .filter(s => s && s.split(/\s+/).length >= 2 && s.split(/\s+/).length <= 5 && s.length <= 40 && !canonNat(s) && !canon(JOB_IX, s, true) && !/سكن|غرف|عامل|جديد|اقام|إقام|وظيف|جنسي|مهن|السلام|عليكم|صباح|مساء|تحي|new|room|please/i.test(s)
+        && !RX.go.test(s) && !RX.out.test(s) && !RX.vacation.test(s) && !RX.final.test(s) && !RX.back.test(s) && !findSite(s));
     d.name = cand.find(s => /[a-z]/i.test(s)) || cand[0] || '';
   }
   if (!d.from) { const s = findSite(text); if (s && /جاي|قادم|from|من/.test(text)) d.from = s.from; }
