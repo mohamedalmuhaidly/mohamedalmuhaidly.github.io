@@ -305,6 +305,57 @@ a.mitem{text-decoration:none;color:inherit}
 .wa-steps .em{font-size:28px;width:56px;height:56px;border-radius:14px;display:grid;place-items:center;background:var(--in-soft);font-family:var(--emoji)}
 .wa-steps .ar{color:var(--muted);font-size:20px;margin-top:16px}
 .wa-steps small{font-size:12.5px;color:var(--muted);text-align:center;line-height:1.3}
+.arn{display:block;font-size:13.5px;line-height:1.35;color:var(--muted);font-weight:600;direction:rtl;text-align:right}
+.wname+.arn{font-size:16px;margin-top:2px}
+.wrow .wn,.wrow .ws{display:block}
+html.big body{font-size:19px}
+html.big .wrow .wn{font-size:19px}
+html.big .wrow .ws,html.big .arn{font-size:16px}
+html.big .wname{font-size:25px}
+html.big .wname+.arn{font-size:19px}
+html.big .lead{font-size:21px}
+html.big .wsub,html.big .muted,html.big .warnbox,html.big .banner,html.big .small-btn,html.big .chip,html.big .opt,html.big .status{font-size:16.5px}
+html.big .tile span{font-size:20px}
+html.big .tile small,html.big .mitem small,html.big .stat span{font-size:15px}
+html.big .big{font-size:23px;min-height:72px}
+html.big .sh-head h2{font-size:22px}
+html.big .mitem{font-size:19px}
+html.big .stat b{font-size:25px}
+html.big .cmp-d,html.big .cmp-alert,html.big .cmp-tile .cmp-l{font-size:16px}
+.sh-head .icon-btn.say{margin-inline-start:auto}
+.mitem.tog .sw{margin-inline-start:auto;width:46px;height:28px;border-radius:14px;background:var(--idle-soft);border:1px solid var(--line);position:relative;flex:none}
+.mitem.tog .sw::after{content:'';position:absolute;top:2px;inset-inline-start:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:inset-inline-start .15s}
+.mitem.tog.on .sw{background:var(--in);border-color:var(--in)}
+.mitem.tog.on .sw::after{inset-inline-start:20px}
+.mitem.on{border-color:var(--accent);background:var(--in-soft)}
+.cmp-head{display:grid;gap:8px;margin-bottom:12px}
+.cmp-file{display:flex;gap:10px;align-items:center}
+.cmp-file b{display:block;overflow-wrap:anywhere}
+.cmp-file small{display:block;color:var(--muted);font-size:13px}
+.cmp-btns{display:flex;flex-wrap:wrap;gap:8px}
+.cmp-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cmp-tile{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:8px;align-items:center;text-align:start;padding:10px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);border-inline-start-width:6px;min-height:68px}
+.cmp-tile .ic{grid-row:1/3;width:22px;height:22px}
+.cmp-tile .cmp-n{font-size:24px;font-weight:800;line-height:1.1}
+.cmp-tile .cmp-l{font-size:13px;color:var(--muted);font-weight:600}
+.cmp-tile.t-warn{border-inline-start-color:var(--warn)}.cmp-tile.t-warn .ic{color:var(--warn)}
+.cmp-tile.t-out{border-inline-start-color:var(--out)}.cmp-tile.t-out .ic{color:var(--out)}
+.cmp-tile.t-in{border-inline-start-color:var(--in)}.cmp-tile.t-in .ic{color:var(--in)}
+.cmp-tile.t-info{border-inline-start-color:var(--h-a)}.cmp-tile.t-info .ic{color:var(--h-a)}
+.cmp-tile.on{border-color:var(--ink);box-shadow:var(--shadow)}
+.cmp-list{display:grid;gap:10px}
+.cmp-item{display:grid;gap:6px;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+.cmp-item .small-btn{justify-self:start}
+.cmp-ds{display:grid;gap:4px;padding-inline-start:8px}
+.cmp-d{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:14px;background:var(--warn-soft);border-radius:10px;padding:6px 10px}
+.cmp-d.minor{background:var(--idle-soft)}
+.cmp-d b{min-width:84px}
+.cmp-d .v{font-weight:700}
+.cmp-alert{display:flex;gap:8px;align-items:flex-start;background:var(--warn-soft);border-radius:12px;padding:8px 10px;font-size:14px;font-weight:600}
+.wrow.static{cursor:default}
+.cmp .wrow.sel .tickbox{background:var(--in);border-color:var(--in)}
+.cmp .wrow.unsel .tickbox{border-color:var(--idle)}
+.cmp .wrow.unsel .tickbox .ic{visibility:hidden}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -366,6 +417,8 @@ const ICON = (() => {
     alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/>',
     door: '<path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.56v16.16a1 1 0 0 1-1.24.97L5 20V5.56a2 2 0 0 1 1.52-1.94l4-1A2 2 0 0 1 13 4.56Z"/>',
     plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    speaker: '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
+    compare: '<rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/><path d="M10 9h4M10 15h4"/>',
     info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
     lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
     send: '<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',
@@ -1199,6 +1252,681 @@ async function deleteOldFinals() {
 }
 
 /* =====================================================================
+   Compare: an Excel file from outside (HR list, old table, …) against the site
+   ===================================================================== */
+let CMP = null;   // { file, sheets, si, det, rows, res, tab, off, scopeUser, filled, mapRef }
+const CMP_AR = { name: 'الاسم', emp: 'الرقم الوظيفي', iq: 'رقم الإقامة', room: 'الغرفة', house: 'السكن', nat: 'الجنسية', job: 'المهنة', dept: 'القسم', exp: 'انتهاء الإقامة', status: 'الحالة' };
+const CMP_ROLES = ['name', 'emp', 'iq', 'room', 'house', 'nat', 'job', 'dept', 'exp', 'status'];
+// Header words, checked in this order: «Iqama expiry» is the expiry, «Employee name» is the name.
+const CMP_HDR = [
+  ['exp', /expir|expiry|valid\s*(till|until|to)|end\s*date|انتهاء|الانتهاء|صلاحي/i],
+  ['status', /^\s*(status|state)\b|الحال[ةه]/i],
+  ['emp', /emp(loyee)?\.?\s*(no|num|number|#|id|code)|staff\s*(no|id|num)|badge|payroll|الرقم\s*الوظيف|رقم\s*(ال)?موظف|رقم\s*وظيف|كود\s*(ال)?موظف|الكود/i],
+  ['iq', /iqam|ikama|resid|national\s*id|id\s*(no|number)|[اإ]قام|هوي[ةه]/i],
+  ['room', /room|غرف/i],
+  ['house', /housing|camp|accommodation|^\s*(ال)?سكن\s*$/i],
+  ['nat', /nationalit|national\b|جنسي/i],
+  ['job', /job|profession|occupation|position|designation|title|trade|work|مهن|المسمى|^\s*العمل\s*$|الوظيف[ةه]/i],
+  ['dept', /dep(ar)?t|division|section|قسم|[اإ]دار[ةه]/i],
+  ['name', /name|الاسم|اسم/i],
+];
+function cmpHeaderRole(v) {
+  const t = typeof v === 'string' ? clean(v) : '';
+  if (!t || t.length > 60 || /sponsor|كفيل|company|شرك[ةه]|manager|مدير|mother|father|[اأ]لام|[اأ]لاب\b/i.test(t)) return null;
+  for (const [k, re] of CMP_HDR) if (re.test(t)) return k;
+  return null;
+}
+function cmpDate(v) {
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') {
+    if (v < 20000 || v > 80000) return null;          // an Excel day number
+    const u = new Date(Math.round((v - 25569) * 864e5)); return new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate());
+  }
+  const t = normDigits(String(v)).trim(); let m;
+  const mk = (y, mo, d) => {
+    if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+    if (y >= 1400 && y <= 1500) {                     // Hijri: the tabular calendar is close enough (a day or two) for expiry warnings
+      const jd = d + Math.ceil(29.5 * (mo - 1)) + (y - 1) * 354 + Math.floor((3 + 11 * y) / 30) + 1948439.5 - 1;
+      const u = new Date((jd - 2440587.5) * 864e5); return new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate());
+    }
+    if (y < 1990 || y > 2100) return null;
+    return new Date(y, mo - 1, d);
+  };
+  if ((m = t.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) return mk(+m[1], +m[2], +m[3]);
+  if ((m = t.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/))) return mk(+m[3], +m[2], +m[1]);
+  return null;
+}
+function cmpStatus(v) {
+  const t = normAr(v); if (!t) return '';
+  if (/نهائي|final|exit|terminat|resign|استقال|منتهي|انتهت|مرحل|ترحيل|cancel|ملغ/.test(t)) return 'final';
+  if (/هروب|متغيب|غياب|absent|abscond|huroob|runaway|منقطع/.test(t)) return 'absent';
+  if (/اجاز|vacation|leave|holiday|سفر|مسافر/.test(t)) return 'vac';
+  if (/active|working|راس العمل|نشط|ساري|فعال|موجود|on duty|ساكن/.test(t)) return 'active';
+  return '';
+}
+function cmpHouse(v) { const t = normAr(v); if (!t) return ''; if (/اداري|admin|office/.test(t)) return 'a'; if (/عمال|labou?r|worker|camp/.test(t)) return 'w'; return ''; }
+
+/* ---------- reading the file ---------- */
+function cmpCsv(buf) {
+  let t = new TextDecoder('utf-8').decode(buf);
+  if (/�/.test(t)) { try { t = new TextDecoder('windows-1256').decode(buf); } catch (e) { /* keep utf-8 */ } }
+  t = t.replace(/^﻿/, '');
+  const first = t.split(/\r?\n/)[0] || '';
+  const dl = [',', ';', '\t'].sort((a, b) => first.split(b).length - first.split(a).length)[0];
+  const rows = []; let row = [], cur = '', q = false, r = 1;
+  const end = () => { row.push(cur); rows[r++] = [undefined, ...row.map(x => x === '' ? null : x)]; row = []; cur = ''; };
+  for (let i = 0; i < t.length; i++) {
+    const ch = t[i];
+    if (q) { if (ch === '"') { if (t[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; continue; }
+    if (ch === '"') q = true;
+    else if (ch === dl) { row.push(cur); cur = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && t[i + 1] === '\n') i++; end(); }
+    else cur += ch;
+  }
+  if (cur || row.length) end();
+  return rows;
+}
+async function cmpReadFile(file) {
+  const name = file.name || 'ملف';
+  if (/\.xls$/i.test(name)) throw { code: 'xls' };
+  let sheets;
+  if (/\.(csv|txt)$/i.test(name) || /csv/.test(file.type || '')) sheets = [{ name: name.replace(/\.[^.]+$/, ''), rows: cmpCsv(await file.arrayBuffer()) }];
+  else sheets = await readXlsx(await file.arrayBuffer());
+  return sheets.filter(s => s.rows && s.rows.some(Boolean));
+}
+function cmpMaxCol(rows, from) { let m = 0; for (let r = from; r < rows.length; r++) if (rows[r]) m = Math.max(m, rows[r].length - 1); return m; }
+function cmpDetect(sh) {
+  const rows = sh.rows; let best = { hr: 0, cols: {}, n: 0 };
+  for (let r = 1; r <= Math.min(rows.length - 1, 25); r++) {
+    const row = rows[r]; if (!row) continue;
+    const cols = {};
+    row.forEach((v, c) => { const k = cmpHeaderRole(v); if (k && !cols[k]) cols[k] = c; });
+    const n = Object.keys(cols).length;
+    if (n > best.n) best = { hr: r, cols, n };
+  }
+  if (best.n < 2) best = { hr: 0, cols: {}, n: 0 };
+  best.guessed = {};
+  cmpGuess(rows, best);
+  return best;
+}
+// Columns the header did not name: guess them from what is written in them.
+function cmpGuess(rows, det) {
+  const start = det.hr + 1, used = new Set(Object.values(det.cols)), stats = [];
+  for (let c = 1; c <= cmpMaxCol(rows, start); c++) {
+    if (used.has(c)) continue;
+    const vals = [];
+    for (let r = start; r < rows.length && vals.length < 400; r++) { const v = rows[r] && rows[r][c]; if (v != null && String(v).trim() !== '') vals.push(v); }
+    if (vals.length < 3) continue;
+    const n = vals.length, frac = f => vals.filter(f).length / n;
+    const ints = vals.map(v => normDigits(String(v)).trim().replace(/\.0+$/, '')).filter(x => /^\d{1,7}$/.test(x)).map(Number).sort((a, b) => a - b);
+    stats.push({ c,
+      iq: frac(v => /^[12]\d{9}$/.test(idNorm(v))),
+      int: ints.length / n, med: ints.length ? ints[ints.length >> 1] : 0,
+      uniq: new Set(vals.map(v => clean(String(v)))).size / n,
+      flag: frac(v => /^[01]$/.test(String(v).trim())),
+      name: frac(v => typeof v === 'string' && /\p{L}{2,}[\s.]+\p{L}{2,}/u.test(v) && !/\d/.test(v) && !canonNat(v) && !canonJob(v)),
+      nat: frac(v => !!canonNat(v)),
+      job: frac(v => !!canon(JOB_IX, v, false)),
+      date: frac(v => !!cmpDate(v)),
+    });
+  }
+  const take = (role, score, min) => {
+    if (det.cols[role]) return;
+    const s = stats.filter(x => !used.has(x.c)).map(x => [x, score(x)]).filter(([, v]) => v >= min).sort((a, b) => b[1] - a[1])[0];
+    if (s) { det.cols[role] = s[0].c; used.add(s[0].c); det.guessed[role] = true; }
+  };
+  take('iq', x => x.iq, 0.5);
+  take('exp', x => x.date, 0.6);
+  take('name', x => x.name, 0.5);
+  take('nat', x => x.nat, 0.5);
+  take('job', x => x.job, 0.4);
+  take('status', x => x.flag, 0.9);   // their own tables: 1 = living here, 0 = out
+  take('emp', x => (x.int >= 0.6 && x.uniq >= 0.7 && x.med >= 50 && x.iq < 0.3 && x.flag < 0.5) ? x.int * x.uniq : 0, 0.4);
+  take('room', x => (x.int >= 0.6 && x.uniq < 0.7 && x.med > 0 && x.med <= 999 && x.flag < 0.5) ? x.int : 0, 0.5);
+}
+function cmpRowsOf(sh, det) {
+  const rows = sh.rows, C = det.cols, out = [];
+  const get = (row, k) => C[k] ? row[C[k]] : null;
+  const txt = v => v == null ? '' : clean(typeof v === 'number' ? String(v) : String(v));
+  // their own tables write the room number once for all its people (merged cells): carry it down
+  let carry = false;
+  if (C.room && C.name) {
+    let named = 0, noRoom = 0;
+    for (let r = det.hr + 1; r < rows.length; r++) { const row = rows[r]; if (!row || !txt(get(row, 'name'))) continue; named++; if (!txt(get(row, 'room'))) noRoom++; }
+    carry = named > 5 && noRoom / named >= 0.3;
+  }
+  const hdrName = det.hr && C.name ? txt(rows[det.hr][C.name]) : '';
+  let lastRoom = null, lastHouse = '';
+  for (let r = det.hr + 1; r < rows.length; r++) {
+    const row = rows[r]; if (!row) continue;
+    const rawName = txt(get(row, 'name'));
+    const rv = get(row, 'room'); const rn = isRoomNo(rv) ? Number(normDigits(rv)) : null;
+    if (rn) lastRoom = rn;
+    const hv = cmpHouse(get(row, 'house')); if (hv) lastHouse = hv;
+    const st = get(row, 'status');
+    const o = {
+      r, name: displayName(rawName), empRaw: idText(get(row, 'emp')), emp: idNorm(get(row, 'emp')), iq: idNorm(get(row, 'iq')),
+      room: rn || (carry && rawName ? lastRoom : null), house: hv || (carry ? lastHouse : ''),
+      nat: txt(get(row, 'nat')), job: txt(get(row, 'job')), dept: txt(get(row, 'dept')),
+      exp: cmpDate(get(row, 'exp')), status: '', flag: null,
+    };
+    if (/^0+$/.test(o.empRaw)) o.empRaw = '';
+    if (C.status) { const sv = txt(st); if (/^[01]$/.test(sv)) o.flag = +sv; else o.status = cmpStatus(sv); }
+    if (o.flag == null && /✓/.test(rawName)) o.flag = 1;
+    if (!o.name && !o.emp && !o.iq) continue;
+    if (hdrName && rawName === hdrName) continue;                       // a repeated header row
+    if (/^(total|المجموع|الاجمالي|الإجمالي)/i.test(o.name) && !o.emp && !o.iq) continue;
+    out.push(o);
+  }
+  return out;
+}
+
+/* ---------- matching ---------- */
+function cmpRun() {
+  const rows = CMP.rows, site = [...S.workers.values()].filter(w => !w.label);
+  const byIq = new Map(), byEmp = new Map();
+  const put = (m, k, w) => { if (!k) return; if (!m.has(k)) m.set(k, []); m.get(k).push(w); };
+  for (const w of site) { put(byIq, idNorm(w.iq), w); put(byEmp, idNorm(w.emp), w); }
+  const tk = new Map(); const toks = n => { if (!tk.has(n)) tk.set(n, nameToks(n)); return tk.get(n); };
+  const hits = (a, b) => {
+    const A = toks(a), B = toks(b); const used = new Set(); let hit = 0;
+    for (const x of A) { const j = B.findIndex((y, k) => !used.has(k) && (y === x || (x.length >= 3 && y.length >= 3 && (y.startsWith(x) || x.startsWith(y))))); if (j >= 0) { used.add(j); hit++; } }
+    return { hit, n: Math.min(A.length, B.length) };
+  };
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const res = { pairs: [], ok: [], diff: [], minor: [], fill: [], fileOnly: [], siteOnly: [], alerts: [] };
+  const taken = new Map();
+  // two people on the site can share a number by mistake: pick the one that fits best and is not taken yet
+  const bestOf = (list, x) => {
+    const free = list.filter(w => !taken.has(w.id)), L = free.length ? free : list;
+    const sc = w => (x.emp && idNorm(w.emp) === x.emp ? 4 : 0) + (x.iq && idNorm(w.iq) === x.iq ? 4 : 0) + (x.name ? hits(x.name, w.name).hit * 2 : 0) + (w.code === 1 ? 1 : 0)
+      + (x.room && w.room === x.room ? 2 : 0) + (x.flag != null && (x.flag === 1) === (w.code === 1) ? 2 : 0) + (w.ord || 0) / 1e9;
+    return L.slice().sort((a, b) => sc(b) - sc(a))[0];
+  };
+  rows.forEach((x, i) => {
+    let w = null, by = '';
+    if (x.iq && byIq.has(x.iq)) { w = bestOf(byIq.get(x.iq), x); by = 'iq'; }
+    else if (x.emp && byEmp.has(x.emp)) { w = bestOf(byEmp.get(x.emp), x); by = 'emp'; }
+    else if (x.name && toks(x.name).length >= 2) {
+      const sc = [];
+      for (const s of site) { const h = hits(x.name, s.name); if (h.hit >= 2 && h.hit >= Math.ceil(h.n * 0.6)) sc.push([s, h.hit + (s.code === 1 ? 0.5 : 0) + (x.room && s.room === x.room ? 1 : 0)]); }
+      sc.sort((a, b) => b[1] - a[1]);
+      if (sc.length && (sc.length === 1 || sc[0][1] > sc[1][1])) { w = sc[0][0]; by = 'name'; }
+    }
+    if (w && taken.has(w.id)) { res.alerts.push({ t: 'dup', w, x, text: `مكرر في الملف مرتين (سطر ${rows[taken.get(w.id)].r} وسطر ${x.r})` }); return; }
+    if (!w) { res.fileOnly.push({ i, x }); return; }
+    taken.set(w.id, i);
+    const p = { i, x, w, by, d: [], m: [] };
+    const sameHouse = !x.house || x.house === w.h;
+    if (x.house && x.house !== w.h) p.d.push({ k: 'house', site: H[w.h].name, file: H[x.house].name });
+    if (x.room && sameHouse && x.room !== w.room) p.d.push({ k: 'room', site: w.room, file: x.room });
+    if (x.flag === 1 && w.code !== 1) p.d.push({ k: 'status', site: 'خارج السكن', file: 'ساكن' });
+    if (x.flag === 0 && w.code === 1) p.d.push({ k: 'status', site: 'ساكن', file: 'خارج السكن' });
+    if (x.status === 'vac' && w.code === 1) p.d.push({ k: 'status', site: 'ساكن', file: 'إجازة' });
+    if (x.status === 'active' && w.code !== 1) p.d.push({ k: 'status', site: 'خارج السكن', file: 'على رأس العمل' });
+    if (by !== 'emp' && x.emp && idNorm(w.emp) && x.emp !== idNorm(w.emp)) p.d.push({ k: 'emp', site: w.emp, file: x.empRaw });
+    if (by !== 'iq' && x.iq && idNorm(w.iq) && x.iq !== idNorm(w.iq)) p.d.push({ k: 'iq', site: w.iq, file: x.iq });
+    const nf = canonNat(x.nat), ns = canonNat(w.nat);
+    if (nf && ns && nf !== ns) p.d.push({ k: 'nat', site: natAr(w.nat), file: natAr(x.nat) });
+    if (x.name && displayName(w.name) && by !== 'name') {
+      const h = hits(x.name, w.name);
+      if (h.hit === 0 && toks(x.name).length && toks(w.name).length) res.alerts.push({ t: 'name', w, x, text: `نفس ${by === 'iq' ? 'رقم الإقامة' : 'الرقم الوظيفي'} بس الاسم مختلف خالص: في الملف «${x.name}»` });
+      else if (h.hit < h.n) p.m.push({ k: 'name', site: displayName(w.name), file: x.name });
+    }
+    const jf = canonJob(x.job), js = canonJob(w.job);
+    if (jf && js && jf !== js) p.m.push({ k: 'job', site: jobInfo(w.job).ar, file: jobInfo(x.job).ar });
+    if (x.dept && clean(w.dept) && normAr(x.dept) !== normAr(w.dept)) p.m.push({ k: 'dept', site: w.dept, file: x.dept });
+    if (x.status === 'final' && w.code === 1) res.alerts.push({ t: 'final', w, x, text: 'الملف بيقول خروج نهائي، وهو لسه ساكن في الموقع' });
+    if (x.status === 'absent' && w.code === 1) res.alerts.push({ t: 'absent', w, x, text: 'الملف بيقول متغيب أو هروب، وهو لسه ساكن في الموقع' });
+    if (x.exp && w.code === 1) {
+      const days = Math.round((x.exp - today) / 864e5);
+      if (days < 0) res.alerts.push({ t: 'exp', w, x, text: `الإقامة خلصت من ${-days} يوم (${dmy(x.exp)})` });
+      else if (days <= 30) res.alerts.push({ t: 'exp', w, x, text: `الإقامة هتخلص بعد ${days} يوم (${dmy(x.exp)})` });
+    }
+    const set = {};
+    if (!idNorm(w.emp) && x.empRaw) set.emp = x.empRaw;
+    if (!idNorm(w.iq) && /^[12]\d{9}$/.test(x.iq)) set.iq = x.iq;
+    if (!clean(w.nat) && x.nat) set.nat = canonNat(x.nat) || x.nat;
+    if (!clean(w.job) && x.job) set.job = canonJob(x.job) || x.job;
+    if (Object.keys(set).length) res.fill.push({ i, x, w, set });
+    res.pairs.push(p);
+    if (p.d.length) res.diff.push(p); else if (p.m.length) res.minor.push(p); else res.ok.push(p);
+  });
+  // numbers written twice in the file, or a bad iqama number
+  const seen = { iq: new Map(), emp: new Map() };
+  rows.forEach(x => { for (const k of ['iq', 'emp']) if (x[k]) { if (!seen[k].has(x[k])) seen[k].set(x[k], []); seen[k].get(x[k]).push(x); } });
+  for (const k of ['iq', 'emp']) for (const [v, list] of seen[k]) if (list.length > 1 && !res.alerts.some(a => a.t === 'dup' && a.x === list[1]))
+    res.alerts.push({ t: 'dupnum', x: list[1], text: `${CMP_AR[k]} ${v} مكتوب ${list.length} مرات في الملف (سطور ${list.map(y => y.r).join('، ')})` });
+  rows.forEach(x => { if (x.iq && !/^[12]\d{9}$/.test(x.iq)) res.alerts.push({ t: 'badiq', x, text: `رقم الإقامة «${x.iq}» مش 10 أرقام (سطر ${x.r})` }); });
+  // the same number used twice on the site
+  const live = site.filter(w => w.code === 1);
+  for (const k of ['iq', 'emp']) { const m = new Map(); for (const w of live) { const v = idNorm(w[k]); if (!v) continue; if (m.has(v)) res.alerts.push({ t: 'dupsite', w, text: `${CMP_AR[k]} ${v} مكتوب لعاملين في الموقع: ${displayName(m.get(v).name)} و${displayName(w.name)}` }); else m.set(v, w); } }
+  // who lives here but is not in the file: only for the housing(s) the file is about
+  const cnt = { w: 0, a: 0 }, liveN = { w: 0, a: 0 };
+  for (const p of res.pairs) if (p.w.code === 1) cnt[p.w.h]++;
+  for (const w of live) liveN[w.h]++;
+  CMP.scopeAuto = ['w', 'a'].filter(h => rows.some(x => x.house === h) || (liveN[h] && cnt[h] >= Math.max(2, liveN[h] * 0.3)));   // the file covers this housing
+  const scope = CMP.scopeUser || CMP.scopeAuto;
+  if (res.pairs.length) res.siteOnly = live.filter(w => scope.includes(w.h) && !taken.has(w.id)).sort((a, b) => a.h.localeCompare(b.h) || a.room - b.room);
+  res.scope = scope;
+  CMP.res = res; CMP.mapRef = S.workers;
+}
+
+/* ---------- screens ---------- */
+function openCompare() {
+  if (!CMP) CMP = { stage: 'pick', tab: 'diff', off: new Set() };
+  if (!$('#file-cmp')) {
+    const inp = document.createElement('input'); inp.type = 'file'; inp.id = 'file-cmp'; inp.hidden = true;
+    inp.accept = '.xlsx,.xlsm,.csv,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv';
+    inp.addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (f) cmpLoad(f); });
+    document.body.appendChild(inp);
+  }
+  Sheets.push({ live: true, render: cmpView });
+}
+async function cmpLoad(file) {
+  if (!CMP) CMP = { tab: 'diff', off: new Set() };
+  Object.assign(CMP, { stage: 'reading', err: '', file: file.name, res: null, filled: null, scopeUser: null, off: new Set() });
+  Sheets.redraw();
+  try {
+    const sheets = await cmpReadFile(file);
+    if (!sheets.length) throw { code: 'empty' };
+    let best = null;
+    sheets.forEach((sh, si) => { const det = cmpDetect(sh); const rows = cmpRowsOf(sh, det); const sc = (det.cols.name ? 2 : 0) + (det.cols.emp ? 2 : 0) + (det.cols.iq ? 2 : 0) + Object.keys(det.cols).length + Math.min(rows.length, 5000) / 5000; if (rows.length && (!best || sc > best.sc)) best = { si, det, rows, sc }; });
+    if (!best) throw { code: 'nonames' };
+    Object.assign(CMP, { sheets, si: best.si, det: best.det, rows: best.rows });
+    if (!best.det.cols.name && !best.det.cols.emp && !best.det.cols.iq) { CMP.stage = 'res'; CMP.res = null; Sheets.redraw(); openCmpMap(); return; }
+    cmpRun(); CMP.stage = 'res';
+    CMP.tab = CMP.res.diff.length ? 'diff' : CMP.res.fill.length ? 'fill' : CMP.res.fileOnly.length ? 'new' : CMP.res.siteOnly.length ? 'gone' : CMP.res.alerts.length ? 'alerts' : 'ok';
+  } catch (e) {
+    if (!e || !['xls', 'empty', 'nonames'].includes(e.code)) console.warn('compare', e);
+    CMP.stage = 'pick';
+    CMP.err = e && e.code === 'xls' ? 'الملف ده بصيغة xls القديمة. افتحه في إكسل واحفظه «xlsx» وجرّب تاني.'
+      : e && e.code === 'empty' ? 'الملف فاضي أو مفيهوش جدول.'
+      : e && e.code === 'nonames' ? 'الملف ده مفيهوش أسامي أو أرقام عمال (يمكن يكون جدول السراير).'
+      : e && e.message === 'nostream' ? 'المتصفح قديم، مش هيقدر يفتح ملفات الإكسل.' : 'مقدرتش أفتح الملف. اتأكد إنه ملف إكسل (xlsx) أو csv.';
+  }
+  Sheets.redraw();
+}
+function cmpColLabel(c) {
+  if (!CMP || !c) return 'مش موجود';
+  const sh = CMP.sheets[CMP.si], hr = CMP.det.hr;
+  const head = hr ? clean(String(sh.rows[hr][c] ?? '')) : '';
+  const samples = [];
+  for (let r = hr + 1; r < sh.rows.length && samples.length < 2; r++) { const v = sh.rows[r] && sh.rows[r][c]; if (v != null && String(v).trim() !== '') samples.push(clean(String(v)).slice(0, 22)); }
+  return `عمود ${colName(c)}${head ? `: ${head}` : ''}${samples.length ? ` — ${samples.join('، ')}` : ''}`;
+}
+const CMP_TABS = [
+  ['diff', 'مختلفين', 'warn', 'alert'], ['fill', 'ناقص والملف فيه', 'info', 'plus'], ['new', 'في الملف ومش في الموقع', 'out', 'user'],
+  ['gone', 'في الموقع ومش في الملف', 'out', 'home'], ['alerts', 'تنبيهات', 'warn', 'alert'], ['ok', 'مطابقين', 'in', 'check'],
+];
+function cmpCount(k) {
+  const r = CMP.res; if (!r) return 0;
+  return { diff: r.diff.length + r.minor.length, fill: r.fill.length, new: r.fileOnly.length, gone: r.siteOnly.length, alerts: r.alerts.length, ok: r.ok.length }[k];
+}
+function cmpView() {
+  const title = `${ICON.compare}مقارنة مع ملف إكسل`;
+  if (!CMP || CMP.stage === 'pick') {
+    return { title, body: `<div class="card cmp-intro">
+        <p class="lead" style="margin-top:0">اختار ملف إكسل من بره (مثلاً كشف الموظفين)، والصفحة هتقارنه بالموقع.</p>
+        <p class="muted">هيطلعلك: مين في الملف ومش ساكن، ومين ساكن ومش في الملف، والغرف والأرقام المختلفة، والناقص اللي الملف يكمّله، والإقامات اللي خلصت.</p>
+        ${CMP && CMP.err ? `<div class="warnbox">${ICON.alert}<span>${esc(CMP.err)}</span></div>` : ''}</div>`,
+      foot: `<button class="big go" data-act="cmp-pick">${ICON.upload}<span>اختيار ملف الإكسل</span></button>` };
+  }
+  if (CMP.stage === 'reading') return { title, body: `<div class="center"><div class="spin"></div><p class="lead">بقرا الملف…</p></div>` };
+  if (!CMP.res) return { title, body: `<div class="warnbox">${ICON.alert}<span>معرفتش فين عمود الاسم أو الأرقام في الملف. اضغط «الأعمدة» وحدّدها.</span></div>`, foot: `<button class="big neutral" data-act="cmp-map">${ICON.table}<span>الأعمدة</span></button>` };
+  if (CMP.mapRef !== S.workers) cmpRun();
+  const r = CMP.res, sh = CMP.sheets[CMP.si];
+  const found = CMP_ROLES.filter(k => CMP.det.cols[k]).map(k => CMP_AR[k]).join('، ');
+  const tiles = CMP_TABS.map(([k, label, tone, icon]) => `<button class="cmp-tile t-${tone} ${CMP.tab === k ? 'on' : ''}" data-act="cmp-tab" data-k="${k}">${ICON[icon]}<span class="cmp-n num">${cmpCount(k)}</span><span class="cmp-l">${label}</span></button>`).join('');
+  const scopeTxt = r.scope.map(h => H[h].name).join(' و');
+  const head = `<div class="cmp-head"><div class="cmp-file">${ICON.table}<span><b dir="auto">${esc(CMP.file)}</b><small><bdi>${esc(sh.name)}</bdi> · ${CMP.rows.length} سطر · لقيت ${r.pairs.length} منهم في الموقع</small><small>الأعمدة: ${esc(found)}</small></span></div>
+    <div class="cmp-btns"><button class="small-btn" data-act="cmp-map">${ICON.edit}الأعمدة</button><button class="small-btn" data-act="cmp-pick">${ICON.upload}ملف تاني</button></div></div>`;
+  let list = '', foot = `<button class="big neutral" data-act="cmp-export">${ICON.download}<span>تنزيل التقرير</span></button>`;
+  const T = CMP.tab;
+  if (T === 'diff') {
+    const item = p => `<div class="cmp-item">${workerRow(p.w)}<div class="cmp-ds">${[...p.d, ...p.m].map(d => `<div class="cmp-d ${p.d.includes(d) ? '' : 'minor'}"><b>${CMP_AR[d.k]}</b><span>الموقع: <bdi class="v">${esc(d.site)}</bdi></span><span>الملف: <bdi class="v">${esc(d.file)}</bdi></span></div>`).join('')}</div>
+      ${p.d.some(d => d.k === 'room') && p.w.code === 1 ? `<button class="small-btn" data-act="cmp-move" data-id="${esc(p.w.id)}" data-n="${p.x.room}">${ICON.move}انقله لغرفة <span class="num">${p.x.room}</span></button>` : ''}</div>`;
+    list = r.diff.length || r.minor.length
+      ? `${r.diff.map(item).join('')}${r.minor.length ? `<div class="sec-title">${ICON.note}فروق بسيطة (كتابة الاسم، المهنة، القسم): ${r.minor.length}</div>${r.minor.map(item).join('')}` : ''}`
+      : '<div class="empty-note">مفيش اختلافات.</div>';
+  } else if (T === 'fill') {
+    const on = r.fill.filter(f => !CMP.off.has(f.w.id)).length;
+    list = r.fill.length ? `<p class="muted" style="margin-top:0">دول ناقصة بياناتهم في الموقع والملف فيه الناقص. علّم اللي عايز تكمّله واضغط الزرار تحت. مش هيغيّر أي حاجة مكتوبة.</p>
+      ${r.fill.map(f => `<button class="wrow ${CMP.off.has(f.w.id) ? 'unsel' : 'sel'}" data-act="cmp-tick" data-id="${esc(f.w.id)}"><span class="tickbox">${ICON.check}</span><span class="wb"><span class="wn">${esc(displayName(f.w.name) || '—')}</span>
+        <span class="ws">${Object.entries(f.set).map(([k, v]) => `${CMP_AR[k]}: <bdi class="num">${esc(v)}</bdi>`).join(' · ')}</span></span><span class="rbadge">${f.w.h === 'a' ? 'إداري ' : ''}<span class="num">${f.w.room}</span></span></button>`).join('')}`
+      : '<div class="empty-note">مفيش حاجة ناقصة الملف يكمّلها.</div>';
+    if (CMP.filled && CMP.filled.length) foot = `<button class="big neutral" data-act="cmp-undo">${ICON.undo}<span>تراجع عن التكميل (${CMP.filled.length})</span></button>`;
+    else if (r.fill.length) foot = `<button class="big go" data-act="cmp-fill" ${on ? '' : 'disabled'}>${ICON.check}<span>كمّل الناقص (${on})</span></button>`;
+  } else if (T === 'new') {
+    list = r.fileOnly.length ? `<p class="muted" style="margin-top:0">دول في الملف ومش لاقيهم في الموقع. لو حد فيهم ساكن فعلاً اضغط «دخّله السكن».</p>${r.fileOnly.map(({ i, x }) => `<div class="cmp-item"><div class="wrow static"><span class="flag emoji">${natFlag(x.nat)}</span><span class="wb"><span class="wn">${esc(x.name || '—')}</span>
+        <span class="ws">${[x.empRaw ? `<span class="num">${esc(x.empRaw)}</span>` : '', x.iq ? `إقامة <span class="num">${esc(x.iq)}</span>` : '', x.room ? `غرفة <span class="num">${x.room}</span>` : '', x.job ? esc(jobInfo(x.job).ar) : '', x.status === 'final' ? 'خروج نهائي' : x.status === 'vac' ? 'إجازة' : ''].filter(Boolean).join(' · ')}</span></span></div>
+        ${x.status === 'final' ? '' : `<button class="small-btn" data-act="cmp-add" data-i="${i}">${ICON.in}دخّله السكن</button>`}</div>`).join('')}`
+      : '<div class="empty-note">كل اللي في الملف موجودين في الموقع.</div>';
+  } else if (T === 'gone') {
+    const seg = `<div class="seg" style="margin-bottom:10px">${[['w', H.w.name], ['a', H.a.name], ['wa', 'الاتنين']].map(([k, l]) => `<button class="${r.scope.join('') === k ? 'on' : ''}" data-act="cmp-scope" data-k="${k}">${l}</button>`).join('')}</div>`;
+    list = !r.pairs.length ? '<div class="empty-note">ولا عامل من الملف موجود في الموقع. اتأكد إن ده الملف الصح، أو اضغط «الأعمدة».</div>'
+      : !r.scope.length ? `${seg}<p class="muted" style="margin-top:0">الملف فيه جزء بس من العمال، فمش هقدر أقول مين مش موجود فيه. لو الملف فيه كل عمال سكن معيّن، اختاره من فوق.</p>`
+      : `${seg}<p class="muted" style="margin-top:0">ساكنين في ${scopeTxt} ومش موجودين في الملف.</p>${r.siteOnly.length ? `<div class="list">${r.siteOnly.map(w => workerRow(w)).join('')}</div>` : '<div class="empty-note">مفيش.</div>'}`;
+  } else if (T === 'alerts') {
+    list = r.alerts.length ? r.alerts.map(a => `<div class="cmp-item"><div class="cmp-alert">${ICON.alert}<span>${esc(a.text)}</span></div>${a.w ? workerRow(a.w) : a.x && a.x.name ? `<div class="muted">${esc(a.x.name)}${a.x.empRaw ? ` · <span class="num">${esc(a.x.empRaw)}</span>` : ''}</div>` : ''}</div>`).join('')
+      : '<div class="empty-note">مفيش تنبيهات.</div>';
+  } else {
+    list = r.ok.length ? `<div class="list">${r.ok.slice(0, 300).map(p => workerRow(p.w)).join('')}</div>${r.ok.length > 300 ? `<p class="muted">و${r.ok.length - 300} كمان…</p>` : ''}` : '<div class="empty-note">مفيش.</div>';
+  }
+  return { title, body: `<div class="cmp">${head}<div class="cmp-tiles">${tiles}</div><div class="sec-title">${ICON[CMP_TABS.find(t => t[0] === T)[3]]}${CMP_TABS.find(t => t[0] === T)[1]}</div><div class="cmp-list">${list}</div></div>`, foot };
+}
+function openCmpMap() {
+  Sheets.push({ live: true, render() {
+    if (!CMP || !CMP.det) return { title: 'الأعمدة', body: '' };
+    const sheetsSeg = CMP.sheets.length > 1 ? `<div class="sec-title">${ICON.table}الورقة</div><div class="chooser">${CMP.sheets.map((s, i) => `<button class="opt ${i === CMP.si ? 'sel' : ''}" data-act="cmp-sheet" data-i="${i}">${esc(s.name)}</button>`).join('')}</div>` : '';
+    const rows = CMP_ROLES.map(k => `<button class="mitem" data-act="cmp-role" data-k="${k}"><span>${CMP_AR[k]}<small dir="auto">${esc(cmpColLabel(CMP.det.cols[k]))}</small></span></button>`).join('');
+    return { title: `${ICON.table}الأعمدة`, body: `${sheetsSeg}<p class="muted">اتأكد إن كل خانة مربوطة بالعمود الصح. اضغط على الخانة عشان تغيّرها.</p><div class="menu">${rows}</div>`,
+      foot: `<button class="big go" data-act="cmp-remap">${ICON.check}<span>قارن</span></button>` };
+  } });
+}
+function openCmpCol(k) {
+  const sh = CMP.sheets[CMP.si], max = cmpMaxCol(sh.rows, CMP.det.hr);
+  Sheets.push({ render: () => ({
+    title: `${ICON.table}${CMP_AR[k]}`,
+    body: `<div class="menu"><button class="mitem" data-act="cmp-col" data-k="${k}" data-c="0"><span>مش موجود في الملف</span></button>
+      ${Array.from({ length: max }, (_, j) => j + 1).map(c => `<button class="mitem ${CMP.det.cols[k] === c ? 'on' : ''}" data-act="cmp-col" data-k="${k}" data-c="${c}"><span dir="auto">${esc(cmpColLabel(c))}</span></button>`).join('')}</div>`,
+  }) });
+}
+async function cmpFill() {
+  if (!CMP || !CMP.res || CMP.busy) return;
+  const items = CMP.res.fill.filter(f => !CMP.off.has(f.w.id)); if (!items.length) return;
+  CMP.busy = true; const done = []; let failed = 0;
+  try {
+    for (let i = 0; i < items.length; i++) {
+      busy(true, `جاري الحفظ… ${i + 1} من ${items.length}`);
+      const it = items[i];
+      const cur = [...S.workers.values()].find(x => x.h === it.w.h && x.sig && x.sig === it.w.sig) || S.workers.get(it.w.id);
+      if (!cur) { failed++; continue; }
+      const before = plainWorker(cur), after = { ...before };
+      for (const [k, v] of Object.entries(it.set)) if (!((k === 'emp' || k === 'iq') ? idNorm(before[k]) : clean(before[k]))) after[k] = v;
+      const nm = withQ(displayName(cur.name), idsMissing(after)); after.name = cur.code === 1 ? addCheck(nm) : stripCheck(nm);
+      if (sameWorker(before, after)) continue;
+      try { const r = await commit('edit', cur, after); if (r) done.push(r); } catch (e) { console.warn('cmp fill', e); failed++; }
+    }
+  } finally { busy(false); CMP.busy = false; }
+  CMP.filled = done; if (done.length) chime();
+  toast(failed ? `اتكمّل ${done.length}، و${failed} ما اتحفظوش. جرّب تاني.` : `اتكمّلت بيانات ${done.length} عامل`);
+  Sheets.redraw();
+}
+async function cmpUndo() {
+  const list = (CMP && CMP.filled) || []; if (!list.length) return;
+  busy(true, 'جاري التراجع…'); let ok = 0;
+  try { for (const r of [...list].reverse()) { try { if (await undoResult(r)) ok++; } catch (e) { console.warn(e); } } } finally { busy(false); }
+  CMP.filled = null; toast(ok ? 'تم التراجع' : 'مقدرتش أتراجع'); Sheets.redraw();
+}
+async function cmpExport() {
+  if (!CMP || !CMP.res) return;
+  const r = CMP.res, book = StyleBook();
+  const hd = book.xf({ font: { b: true, color: 'FFFFFFFF' }, fill: '0C6B63', border: true, h: 'center', v: 'center', wrap: true });
+  const cl = book.xf({ border: true, v: 'center', wrap: true });
+  const sheet = (name, head, rows, cols) => ({ name, rtl: true, freeze: 1, cols, rows: [{ cells: head.map(v => ({ v, s: hd })), ht: 30 }, ...rows.map(x => ({ cells: x.map(v => ({ v: v == null ? '' : v, s: cl })) }))] });
+  const wcells = w => [H[w.h].name, w.room, displayName(w.name), w.emp, w.iq];
+  const W = ['السكن', 'الغرفة', 'الاسم', 'الرقم الوظيفي', 'رقم الإقامة'];
+  const sheets = [
+    sheet('ملخص', ['البند', 'العدد'], [['الملف', CMP.file], ['سطور الملف', CMP.rows.length], ['موجودين في الموقع', r.pairs.length], ...CMP_TABS.map(([k, l]) => [l, cmpCount(k)]), ['التاريخ', todayStr()]], [34, 40]),
+    sheet('مختلفين', [...W, 'الخانة', 'في الموقع', 'في الملف'], [...r.diff, ...r.minor].flatMap(p => [...p.d, ...p.m].map(d => [...wcells(p.w), CMP_AR[d.k], d.site, d.file])), [14, 8, 30, 14, 14, 16, 20, 20]),
+    sheet('ناقص والملف فيه', [...W, 'الناقص', 'من الملف'], r.fill.flatMap(f => Object.entries(f.set).map(([k, v]) => [...wcells(f.w), CMP_AR[k], v])), [14, 8, 30, 14, 14, 16, 20]),
+    sheet('في الملف مش في الموقع', ['سطر', 'الاسم', 'الرقم الوظيفي', 'رقم الإقامة', 'الغرفة', 'الجنسية', 'المهنة'], r.fileOnly.map(({ x }) => [x.r, x.name, x.empRaw, x.iq, x.room || '', x.nat, x.job]), [7, 30, 14, 14, 8, 14, 16]),
+    sheet('في الموقع مش في الملف', W, r.siteOnly.map(wcells), [14, 8, 30, 14, 14]),
+    sheet('تنبيهات', ['التنبيه', 'الاسم', 'الرقم الوظيفي', 'رقم الإقامة'], r.alerts.map(a => [a.text, a.w ? displayName(a.w.name) : (a.x && a.x.name) || '', a.w ? a.w.emp : (a.x && a.x.empRaw) || '', a.w ? a.w.iq : (a.x && a.x.iq) || '']), [60, 30, 14, 14]),
+  ];
+  try {
+    const blob = await buildXlsx(sheets, book);
+    const f = new File([blob], `مقارنة ${CMP.file.replace(/\.[^.]+$/, '')} ${isoDay()}.xlsx`, { type: XLSX_TYPE });
+    if (canShareFile(f)) { try { await navigator.share({ files: [f] }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    saveFile(f);
+  } catch (e) { console.warn('cmp export', e); toast('مقدرتش أجهّز التقرير'); }
+}
+const CMP_ACT = {
+  'cmp-open': () => { Sheets.closeAll(); openCompare(); },
+  'cmp-pick': () => { const i = $('#file-cmp'); if (i) i.click(); },
+  'cmp-tab': el => { CMP.tab = el.dataset.k; Sheets.redraw(); },
+  'cmp-tick': el => { const id = el.dataset.id; if (CMP.off.has(id)) CMP.off.delete(id); else CMP.off.add(id); Sheets.redraw(); },
+  'cmp-fill': () => cmpFill(),
+  'cmp-undo': () => cmpUndo(),
+  'cmp-export': () => cmpExport(),
+  'cmp-scope': el => { CMP.scopeUser = el.dataset.k === 'wa' ? ['w', 'a'] : [el.dataset.k]; cmpRun(); Sheets.redraw(); },
+  'cmp-map': () => openCmpMap(),
+  'cmp-role': el => openCmpCol(el.dataset.k),
+  'cmp-col': el => { const k = el.dataset.k, c = +el.dataset.c; for (const r of CMP_ROLES) if (c && CMP.det.cols[r] === c) delete CMP.det.cols[r]; if (c) CMP.det.cols[k] = c; else delete CMP.det.cols[k]; Sheets.pop(); },
+  'cmp-sheet': el => { CMP.si = +el.dataset.i; CMP.det = cmpDetect(CMP.sheets[CMP.si]); Sheets.redraw(); },
+  'cmp-remap': () => { CMP.rows = cmpRowsOf(CMP.sheets[CMP.si], CMP.det); CMP.scopeUser = null; CMP.off = new Set(); CMP.filled = null; if (CMP.det.cols.name || CMP.det.cols.emp || CMP.det.cols.iq) cmpRun(); else CMP.res = null; Sheets.pop(); Sheets.redraw(); },
+  'cmp-add': el => {
+    const x = CMP && CMP.rows[+el.dataset.i]; if (!x) return;
+    startFlow('add', { h: x.house || S.h });
+    const d = blankDraft();
+    Object.assign(d, { name: x.name, emp: x.empRaw || '', iq: x.iq || '', nat: canonNat(x.nat) || x.nat || '', job: canonJob(x.job) || x.job || '', dept: x.dept || '', room: x.room || null, h: x.house || null });
+    F.queue = [enrich(d)]; F.qi = 0; F.d = F.queue[0]; if (F.d.h) F.h = F.d.h; go('review');
+  },
+  'cmp-move': el => { const w = S.workers.get(el.dataset.id); if (!w) return; startFlow('move', { w, h: w.h, step: 'room', d: { nat: w.nat, room: +el.dataset.n, h: w.h } }); },
+};
+/* =====================================================================
+   Easy mode for whoever keeps the tables: names in Arabic letters,
+   a voice that reads the screen, simple Egyptian words, bigger text.
+   ===================================================================== */
+const EASY_KEY = 'housing-easy-v1';
+const EASY = (() => { let o = {}; try { o = JSON.parse(localStorage.getItem(EASY_KEY) || '{}') || {}; } catch (e) { /* storage may be blocked */ } return { names: o.names !== false, eg: o.eg !== false, voice: !!o.voice, big: !!o.big, lastKey: '' }; })();
+function easySave() { try { localStorage.setItem(EASY_KEY, JSON.stringify({ names: EASY.names, eg: EASY.eg, voice: EASY.voice, big: EASY.big })); } catch (e) { /* ignore */ } }
+
+/* ---------- names in Arabic letters ---------- */
+// Common names spelled the usual Arabic way (g is written ج, as an Egyptian reads it).
+const AR_NAMES = (() => {
+  const src = `mohammed muhammed md mohammad mohamed muhammad mohd mohamad muhamad mhd mohmmed mohammd muhamed mohamd mohummad=محمد|mohammadi=محمدي|ali aly=علي|ahmed ahmad ahamed ahmd=أحمد|khan=خان|kumar=كومار|bahadur bahabur=بهادور|hussain hussein husain hossain hosain husein hussan=حسين|husseini=حسيني|tariq tarek tareq tarik=طارق|singh=سينج|iqbal ikbal=إقبال|alam=عالم|mahmoud mahmood mehmood mahmud=محمود|ghulam=غلام|adnan=عدنان|imran=عمران|tahir taher=طاهر|asif=آصف|ullah allah ulla=الله|amer aamir aamer=عامر|amir=أمير|abbas=عباس|sayed syed sayyed sayyid=سيد|alsayed elsayed=السيد|saeed said saied=سعيد|nawaz=نواز|tamang=تامانج|rehman rahman=رحمن|yadav=ياداف|raza reda rida=رضا|ram=رام|usman osman othman=عثمان|islam=إسلام|abdullah abdallah abdulla=عبد الله|awais owais uwais=أويس|ashraf=أشرف|khalid khaled=خالد|arshad=أرشد|danish=دانش|ijaz ejaz=إعجاز|waqas=وقاص|nasir nasser naser=ناصر|bilal=بلال|azhar=أزهر|waqar=وقار|ansari=أنصاري|saleem salim=سليم|farooq farouk faruk farooque=فاروق|qasim qasem kasim=قاسم|osama usama osamah usamah=أسامة|hassan hasan=حسن|ibrahim ebrahim=إبراهيم|mostafa mustafa mustapha=مصطفى|sajid=ساجد|sunil=سونيل|ahad=أحد|naeem naim=نعيم|akram akrm=أكرم|gulzar=جلزار|shahid=شاهد|kashif kahsif=كاشف|faizan=فيضان|naveed naved nowed navid=نويد|krishna=كريشنا|javed javaid=جاويد|mohsin=محسن|irfan=عرفان|suresh=سوريش|akbar=أكبر|haider hyder=حيدر|arslan=أرسلان|omar umar umer omer=عمر|amjad=أمجد|zeeshan=ذيشان|bhim=بهيم|raja=راجا|shakeel shakil=شكيل|arif aref=عارف|din deen uddin=الدين|fouad fuad=فؤاد|adel adil=عادل|zahid=زاهد|gomaa juma jumaa gumaa=جمعة|john jon=جون|majeed=مجيد|majid=ماجد|walid waleed=وليد|masood masoud masud=مسعود|bakhsh baksh=بخش|tasleem=تسليم|afzal afjal=أفضل|yahya=يحيى|sunar=سونار|yaqoot=ياقوت|shamshad=شمشاد|mia=ميا|mahato=ماهاتو|padame=بادامي|ghafoor gafoor=غفور|zubair=زبير|zaheer=ظهير|zahir=ظاهر|malik=مالك|rafique rafiq rafik=رفيق|irshad=إرشاد|roshan=روشان|zulfiqar zulfkar zulfikar=ذو الفقار|jawad=جواد|qamar=قمر|dharmendra=دارميندرا|subhan=سبحان|iftikhar=افتخار|ahsan=أحسن|sufyan sufian=سفيان|pramod=برامود|hasnat=حسنات|anwar=أنور|nazim=ناظم|niaz=نياز|yasir yaser yasser=ياسر|zain zayn=زين|ashfaq=أشفاق|aqeel aqil=عقيل|asghar=أصغر|ansar=أنصار|zafar=ظفر|atif=عاطف|shah=شاه|shahzad=شهزاد|ramzan ramadan ramdan=رمضان|rizwan=رضوان|noman nauman nouman numan=نعمان|qadir=قادر|siddique siddiq=صديق|aftab=آفتاب|jabbar=جبار|prem=بريم|abid=عابد|zahoor=ظهور|rehan=ريحان|sultan=سلطان|jamil jameel=جميل|lal=لال|dawa=داوا|ramu=رامو|mehrban=مهربان|manish=مانيش|shahrukh=شاه رخ|saad=سعد|siraj=سراج|hamza hamzah=حمزة|qurban=قربان|shan=شان|nadeem=نديم|ditta=دتا|mahboub mehboob mahboob=محبوب|adam=آدم|hani hany=هاني|karim kareem=كريم|hossam husam=حسام|fattah=فتاح|fawzi fawzy=فوزي|saleh salih=صالح|abdelhamed abdulhamid abdelhamid=عبد الحميد|abodouh=أبو دوح|mamdouh=ممدوح|sobhy sobhi=صبحي|zaki zaky=زكي|abdulhafiz=عبد الحفيظ|hisham hesham=هشام|hafith hafiz=حافظ|hafeez=حفيظ|nafis=نفيس|giri=جيري|sheraz=شيراز|abdelrhman abdullrahman abdulrahman abdelrahman abdurrahman=عبد الرحمن|kamel=كامل|kamal=كمال|nasr=نصر|ayyaz ayaz=أياز|suliman suleman sulaiman sulaman=سليمان|samir sameer=سمير|mukhtar=مختار|abdulaziz abdelaziz=عبد العزيز|yousef yusuf youssef yousif yusif=يوسف|secretary=سكرتير|raj=راج|faris fares=فارس|taha=طه|babar=بابر|nabil nabeel=نبيل|abo abu=أبو|chaudhary chaudhry chaudhari=تشودري|zuhair=زهير|khalil=خليل|riaz riyaz=رياض|waseem wasim vasim=وسيم|jamal gamal=جمال|shujat=شجاعت|faisal faysal=فيصل|hamdi hamdy=حمدي|hamid=حامد|hameed=حميد|akhtar=أختر|mazid=مزيد|shiva=شيفا|rauf raoof=رؤوف|sarfraz=سرفراز|faheem=فهيم|zaman=زمان|arbaz=أرباز|bilawal=بلاول|rana=رانا|tanveer tanvir=تنوير|mumtaz=ممتاز|khursheed khurshid=خورشيد|gazi ghazi=غازي|shamim=شميم|gupta=جوبتا|chauhan=تشوهان|dilip=ديليب|balram=بالرام|ajay=أجاي|tamer tamar=تامر|ayman aiman=أيمن|ehab=إيهاب|emad imad=عماد|essam esam=عصام|magdy magdi=مجدي|medhat=مدحت|sameh=سامح|sherif sharif=شريف|wael=وائل|zakaria zakariya=زكريا|ramy rami=رامي|ismail esmail=إسماعيل|yasin yassin yaseen=ياسين|younis yunus younas=يونس|musa moosa mousa=موسى|essa isa eisa=عيسى|haroon harun=هارون|idrees idris=إدريس|ilyas elias=إلياس|ayub ayoub=أيوب|yaqoob yaqub yakub=يعقوب|salman=سلمان|suhail sohail=سهيل|shoaib shuaib=شعيب|junaid=جنيد|saqib=ثاقب|waheed wahid=وحيد|rashid=راشد|rasheed=رشيد|shafiq shafique=شفيق|latif lateef=لطيف|bashir basheer=بشير|nazir nazeer=نذير|munir muneer=منير|noor nur=نور|gul=جل|jan=جان|hayat=حياة|qayyum qayum=قيوم|ghaffar=غفار|sattar=ستار|razzaq razaq=رزاق|wahab=وهاب|rahim raheem=رحيم|aziz=عزيز|mannan=منان|rasool rasul=رسول|ghani gani=غني|jalil jaleel=جليل|kabir=كبير|thapa=ثابا|gurung=جورونج|rai=راي|magar=ماجار|shrestha=شريستا|sharma=شارما|prasad=براساد|das=داس|raju=راجو|shyam=شيام|hari=هاري|ramesh=راميش|dinesh=دينيش|mahesh=ماهيش|rajesh=راجيش|anil=أنيل|santosh=سانتوش|deepak dipak=ديباك|manoj=مانوج|sanjay=سانجاي|vijay=فيجاي|ravi=رافي|arjun=أرجون|bishal=بيشال|gopal=جوبال|bikash=بيكاش|bijay=بيجاي|sagar=ساجار|suman=سومان|kiran=كيران|prakash=براكاش|ganesh=جانيش|pradeep pradip=براديب|ashok=أشوك|mohan=موهان|narayan=ناريان|shankar=شانكار|chandra=تشاندرا|maya=مايا|dev=ديف|jose=خوسيه|mark=مارك|michael=مايكل|joseph=جوزيف|james=جيمس|perera=بيريرا|fernando=فرناندو|cruz=كروز|santos=سانتوس|melchor=ميلكور|primo=بريمو|larry=لاري|paul pual=بول|abideen abdeen abidin=عابدين|hadi=هادي|saif=سيف|rahmat=رحمت|altaf=ألطاف|alamgir=عالمجير|aleem alim=عليم|fahmy fahmi fahmie=فهمي|seoudy saudi=سعودي|elkedrawy=القدراوي|alarosy=العروسي`;
+  const m = {};
+  for (const part of src.split('|')) { const [keys, ar] = part.split('='); for (const k of keys.split(' ')) if (k) m[k] = ar; }
+  return m;
+})();
+const PH_V2 = { aa: 'ا', ee: 'ي', ii: 'ي', oo: 'و', ou: 'و', uu: 'و', ai: 'اي', ay: 'اي', ei: 'اي', ey: 'اي', au: 'او', aw: 'او', ow: 'او', ie: 'ي', ea: 'ي', oa: 'و' };
+const PH_V2_START = { aa: 'آ', ai: 'أي', ay: 'أي', au: 'أو', aw: 'أو', ee: 'إي', ii: 'إي', ei: 'إي', ey: 'إي', oo: 'أو', ou: 'أو', uu: 'أو', ow: 'أو', oa: 'أو', ie: 'إي', ea: 'إي' };
+const PH_C2 = { sh: 'ش', kh: 'خ', gh: 'غ', ch: 'تش', th: 'ث', ph: 'ف', dh: 'د', bh: 'به', jh: 'جه', zh: 'ج', ck: 'ك' };
+const PH_C1 = { b: 'ب', d: 'د', f: 'ف', g: 'ج', h: 'ه', j: 'ج', k: 'ك', l: 'ل', m: 'م', n: 'ن', p: 'ب', q: 'ق', r: 'ر', s: 'س', t: 'ت', v: 'ف', w: 'و', x: 'كس', y: 'ي', z: 'ز' };
+// Any other word: write it by its sounds.
+function phon(word) {
+  const s = String(word).toLowerCase().replace(/[^a-z]/g, ''); if (!s) return '';
+  let out = '', prev = '', i = 0;
+  while (i < s.length) {
+    const two = s.slice(i, i + 2), ch = s[i], start = i === 0, last = i === s.length - 1;
+    let piece = '', step = 1;
+    if (PH_V2[two]) { piece = start ? PH_V2_START[two] : PH_V2[two]; step = 2; }
+    else if (PH_C2[two]) { piece = PH_C2[two]; step = 2; }
+    else if ('aeiou'.includes(ch)) piece = start ? (ch === 'a' ? 'أ' : ch === 'e' || ch === 'i' ? 'إ' : 'أو') : ch === 'a' ? 'ا' : ch === 'e' || ch === 'i' ? 'ي' : 'و';
+    else if (ch === 'c') piece = 'eiy'.includes(s[i + 1] || '') ? 'س' : 'ك';
+    else if (ch === 'h' && last && 'aeiou'.includes(s[i - 1] || '')) piece = 'ه';
+    else piece = PH_C1[ch] || '';
+    if (piece && piece === prev && !'اويآ'.includes(piece)) piece = '';   // a doubled letter is written once
+    out += piece; if (piece) prev = piece; i += step;
+  }
+  return out.replace(/ا{2,}/g, 'ا').replace(/ي{2,}/g, 'ي').replace(/و{2,}/g, 'و');
+}
+const arWithAl = w => w.startsWith('ال') ? w : 'ال' + w;
+function arWord(t) {
+  if (AR_NAMES[t]) return AR_NAMES[t];
+  let m;
+  if ((m = t.match(/^abd(?:ul|el|al|ur|us|ou|u)?([a-z]{3,})$/))) return 'عبد ' + arWithAl(arWord(m[1]));
+  if ((m = t.match(/^([a-z]{3,}?)(?:ullah|ulla|allah)$/))) return arWord(m[1]) + ' الله';
+  if ((m = t.match(/^([a-z]{3,}?)(?:uddin|uddeen|eddin|udin)$/))) return arWord(m[1]) + ' الدين';
+  if ((m = t.match(/^(?:al|el)([a-z]{3,})$/)) && (AR_NAMES[m[1]] || t.length >= 7)) return arWithAl(arWord(m[1]));
+  return phon(t);
+}
+const AR_NAME_CACHE = new Map();
+function arName(name) {
+  const raw = displayName(name);
+  if (!raw || /[؀-ۿ]/.test(raw) || !/[a-z]/i.test(raw)) return '';
+  if (AR_NAME_CACHE.has(raw)) return AR_NAME_CACHE.get(raw);
+  const toks = raw.toLowerCase().split(/[\s.\-_'’,()/]+/).map(t => t.replace(/[^a-z]/g, '')).filter(Boolean);
+  const out = [];
+  for (let i = 0; i < toks.length; i++) {
+    const t = toks[i], nx = toks[i + 1] || '';
+    if (/^(abdul|abdel|abd|abdal|abdur|abdus|abdu|abdoul)$/.test(t) && nx) { out.push('عبد ' + arWithAl(arWord(nx))); i++; continue; }
+    if (/^(ul|ud|ur|us|al|el|ad|an|as|at|az)$/.test(t) && nx && out.length) { out.push(arWithAl(arWord(nx))); i++; continue; }
+    out.push(arWord(t));
+  }
+  const res = out.join(' ').replace(/\s+/g, ' ').trim();
+  AR_NAME_CACHE.set(raw, res);
+  return res;
+}
+// Search in Arabic letters: «وليد» finds Walid, «بهادر» finds Bahadur.
+function easySearchHit(q, w) {
+  if (!/[؀-ۿ]/.test(q || '')) return false;
+  const n = normAr(q); if (n.length < 2) return false;
+  const ar = normAr(arName(w.name)); if (ar && ar.includes(n)) return true;
+  const qs = clean(q).split(/\s+/).map(skel).filter(x => x.length >= 2); if (!qs.length) return false;
+  const ns = nameToks(w.name);
+  return qs.every(x => ns.some(y => y === x || y.startsWith(x) || (x.length >= 3 && y.length >= 3 && x.startsWith(y))));
+}
+
+/* ---------- simple Egyptian words ---------- */
+const EG_RULES = [
+  ['وما رجع للحين', 'ولسه مرجعش'], ['وما رجعوا للحين', 'ولسه مرجعوش'], ['وما رجعوا', 'ولسه مرجعوش'], ['وما رجع', 'ولسه مرجعش'], ['ما رجعوا', 'مرجعوش'], ['ما رجع', 'مرجعش'],
+  ['ما فيه', 'مفيش'], ['ما فيها', 'مفيهاش'], ['ما لقيت', 'ملقتش'], ['ما قدرت', 'مقدرتش'], ['ما عرفت', 'معرفتش'], ['ما انحفظ', 'ما اتحفظش'], ['ما انحفظت', 'ما اتحفظتش'],
+  ['ما يقدر', 'مش هيقدر'], ['ما عنده', 'معندوش'], ['ما عندهم', 'معندهمش'], ['ما تحتاج', 'مش محتاج'], ['يسكن برّا', 'ساكن بره'], ['يسكن برا', 'ساكن بره'],
+  ['مرة ثانية', 'تاني'], ['جرّب مرة ثانية', 'جرّب تاني'],
+  ['لهذي ال([\\p{L}\\p{M}]+)', 'لل$1 دي'], ['لهذا ال([\\p{L}\\p{M}]+)', 'لل$1 ده'], ['بهذي ال([\\p{L}\\p{M}]+)', 'بال$1 دي'], ['بهذا ال([\\p{L}\\p{M}]+)', 'بال$1 ده'], ['هذولي', 'دول'],
+  ['هذي (ال[\\p{L}\\p{M}]+)', '$1 دي'], ['هذا (ال[\\p{L}\\p{M}]+)', '$1 ده'], ['هذول (ال[\\p{L}\\p{M}]+)', '$1 دول'], ['هذي', 'دي'], ['هذا', 'ده'], ['هذول', 'دول'],
+  ['مو', 'مش'], ['وش', 'إيه'], ['ليش', 'ليه'], ['للحين', 'لسه'], ['الحين', 'دلوقتي'], ['وين', 'فين'], ['كذا', 'كده'], ['لين', 'لحد ما'],
+  ['الثاني', 'التاني'], ['الثانية', 'التانية'], ['ثاني', 'تاني'], ['ثانية', 'تانية'], ['ثانيه', 'تانية'],
+  ['برّا', 'بره'], ['برا', 'بره'], ['تبي', 'عايز'], ['يبي', 'عايز'], ['تبغى', 'عايز'],
+  ['القروب', 'الجروب'], ['قروب', 'جروب'], ['الجوال', 'الموبايل'], ['جوال', 'موبايل'], ['جوالك', 'موبايلك'],
+  ['انحفظ', 'اتحفظ'], ['انحفظت', 'اتحفظت'], ['انحذف', 'اتمسح'], ['انحذفوا', 'اتمسحوا'], ['انحذفت', 'اتمسحت'], ['ينحذف', 'هيتمسح'], ['ينحذفون', 'هيتمسحوا'], ['تنحذف', 'تتمسح'],
+  ['انضاف', 'اتضاف'], ['انضافوا', 'اتضافوا'], ['انتسخ', 'اتنسخ'], ['انقفل', 'اتقفل'],
+  ['بتطلع', 'هتطلع'], ['بيطلع', 'هيطلع'], ['بيصير', 'هيبقى'], ['بتصير', 'هتبقى'], ['بيروح', 'هيروح'], ['بيرجع', 'هيرجع'], ['بيكون', 'هيكون'],
+  ['إذا', 'لو'], ['اذا', 'لو'], ['وإذا', 'ولو'], ['واذا', 'ولو'], ['فإذا', 'فلو'], ['اختر', 'اختار'], ['واختر', 'واختار'], ['سوّى', 'عمل'], ['سوى', 'عمل'],
+  ['للقروب', 'للجروب'], ['بالقروب', 'بالجروب'], ['والقروب', 'والجروب'], ['يصير', 'يبقى'], ['ويصير', 'ويبقى'], ['تصير', 'تبقى'], ['بينحذف', 'هيتمسح'], ['ينشال', 'هيتشال'],
+  ['أحد', 'حد'], ['مثل', 'زي'], ['لحالها', 'لوحدها'], ['لحاله', 'لوحده'],
+].map(([a, b]) => [new RegExp(`(?<![\\p{L}\\p{M}])(?:${a})(?![\\p{L}\\p{M}])`, 'gu'), b]);
+function eg(t) {
+  if (!t || !/[؀-ۿ]/.test(t)) return t;
+  let s = t; for (const [re, b] of EG_RULES) s = s.replace(re, b);
+  return s;
+}
+const EG_SKIP = 'script,style,textarea,input,select,.arn,.wn,.wname,.num,.ltr,[data-raw],[dir="ltr"]';
+function easyDialect(root) {
+  if (!EASY.eg || !root) return;
+  const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => (/[؀-ۿ]/.test(n.nodeValue) && !(n.parentElement && n.parentElement.closest(EG_SKIP))) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT });
+  const list = []; while (tw.nextNode()) list.push(tw.currentNode);
+  for (const n of list) { const v = eg(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; }
+  if (root.querySelectorAll) root.querySelectorAll('input[placeholder]').forEach(i => { const v = eg(i.placeholder); if (v !== i.placeholder) i.placeholder = v; });
+}
+function easyNames(root) {
+  if (!root || !root.querySelectorAll) return;
+  root.querySelectorAll('.wn, .wname').forEach(el => {
+    const txt = el.textContent.trim(), nx = el.nextElementSibling;
+    const ar = EASY.names ? arName(txt) : '';
+    if (nx && nx.classList.contains('arn')) { if (ar && nx.dataset.src === txt) return; nx.remove(); }
+    if (!ar) return;
+    const s = document.createElement(el.tagName === 'DIV' ? 'div' : 'span'); s.className = 'arn'; s.dataset.src = txt; s.textContent = ar;
+    el.after(s);
+  });
+}
+function easyApply(root) { easyNames(root); easyDialect(root); }
+let easyQueued = false;
+function easyQueue() { if (easyQueued) return; easyQueued = true; requestAnimationFrame(() => { easyQueued = false; easyApply(document.body); }); }
+
+/* ---------- a voice that reads the screen ---------- */
+function easyVoice() {
+  try { const ar = speechSynthesis.getVoices().filter(v => /^ar/i.test(v.lang)); return ar.find(v => /eg/i.test(v.lang)) || ar.find(v => /sa/i.test(v.lang)) || ar[0] || null; } catch (e) { return null; }
+}
+function speakText(t) {
+  return String(t || '')
+    .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, '').replace(/\p{Extended_Pictographic}/gu, '').replace(/️/g, '')
+    .replace(/[A-Za-z][A-Za-z.'’]*(?:[ \t]+[A-Za-z][A-Za-z.'’]*)*/g, m => arName(m) || m)
+    .replace(/[←→·•|«»]/g, '، ').replace(/(،\s*){2,}/g, '، ').replace(/\s+/g, ' ').trim();
+}
+function say(text) {
+  let syn; try { syn = window.speechSynthesis; } catch (e) { syn = null; }
+  if (!syn || typeof SpeechSynthesisUtterance === 'undefined') { toast(eg('الموبايل ده مفيهوش صوت للقراءة')); return false; }
+  const t = speakText(eg(text)); if (!t) return false;
+  try {
+    syn.cancel();
+    const u = new SpeechSynthesisUtterance(t), v = easyVoice();
+    if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'ar-EG';
+    u.rate = 0.92; syn.speak(u);
+    EASY.said = t;
+  } catch (e) { console.warn('say', e); return false; }
+  return true;
+}
+function easyLabel(b) { const c = b.cloneNode(true); c.querySelectorAll('small, svg, .arn').forEach(x => x.remove()); return c.innerText.replace(/\s+/g, ' ').trim(); }
+function homeSpeech() {
+  if (!S.ready) return 'لسه بيحمّل.';
+  const h = S.h, t = totals(h), parts = [`${H[h].name}. ساكنين ${t.present}، وفيه ${t.free} سرير فاضي.`];
+  const vd = vacationsDue().length; if (vd) parts.push(`فيه ${vd} عمال إجازتهم خلصت ولسه مرجعوش.`);
+  if (S.q) parts.push(`بتدوّر على ${S.q}.`);
+  parts.push('لو حد داخل السكن اضغط الزرار الأخضر «دخول». لو حد خارج اضغط الزرار الأحمر «خروج».');
+  return parts.join(' ');
+}
+function screenSpeech() {
+  const top = Sheets.top(); if (!top) return homeSpeech();
+  const el = top.el, tx = x => (x && x.innerText || '').replace(/\s+/g, ' ').trim(), parts = [];
+  parts.push(tx(el.querySelector('.sh-head h2')));
+  const body = el.querySelector('.sh-body');
+  if (body) {
+    const wn = body.querySelector('.wname');
+    if (wn) parts.push(tx(wn.nextElementSibling && wn.nextElementSibling.classList.contains('arn') ? wn.nextElementSibling : wn), tx(body.querySelector('.wsub')));
+    body.querySelectorAll('.lead, .warnbox, .banner, .kp-label, .empty-note, .cmp-alert, .bigroom').forEach(x => parts.push(tx(x)));
+    const rows = [...body.querySelectorAll('.wrow')];
+    if (rows.length && rows.length <= 8) rows.forEach(r => { const a = r.querySelector('.arn') || r.querySelector('.wn'), num = r.querySelector('.ws .num'), rb = r.querySelector('.rbadge'); parts.push(`${tx(a)}${num && tx(num) ? '، رقم ' + tx(num) : ''}${rb ? '، غرفة ' + tx(rb).replace(/\D+/g, '') : ''}`); });
+    else if (rows.length) parts.push(`فيه ${rows.length} عامل في القايمة`);
+    const tiles = [...body.querySelectorAll('.tile')].map(easyLabel).filter(Boolean);
+    if (tiles.length) parts.push('اختار: ' + tiles.join('، أو '));
+    const rooms = [...body.querySelectorAll('[data-act="pick-room"]')].slice(0, 3).map(b => b.dataset.n);
+    if (rooms.length) parts.push(`الغرف المقترحة: ${rooms.join('، ')}`);
+    if (parts.length < 3) { const c = body.querySelector('.card, .menu'); if (c) parts.push(tx(c).slice(0, 220)); }
+  }
+  const btns = [...el.querySelectorAll('.sh-foot button:not([disabled])')].map(easyLabel).filter(Boolean);
+  if (btns.length) parts.push('اضغط: ' + btns.join('، أو '));
+  return parts.filter(Boolean).join('. ');
+}
+function easyAuto(t) {
+  if (!EASY.voice || !t) return;
+  const key = (t.el.querySelector('.sh-head h2')?.innerText || '') + '|' + (F && t.spec.render === flowView ? F.hist[F.hist.length - 1] : t.el.querySelectorAll('.wrow').length);
+  if (key === EASY.lastKey) return;
+  EASY.lastKey = key; say(screenSpeech());
+}
+
+/* ---------- settings ---------- */
+function easyBig() { document.documentElement.classList.toggle('big', !!EASY.big); }
+function openEasy() {
+  const tog = (k, icon, label, sub) => `<button class="mitem tog ${EASY[k] ? 'on' : ''}" data-act="easy-tog" data-k="${k}">${icon}<span>${label}<small>${sub}</small></span><span class="sw" aria-hidden="true"></span></button>`;
+  Sheets.push({ live: true, render: () => ({
+    title: `${ICON.speaker}تسهيلات`,
+    body: `<p class="lead" style="margin-top:0">عشان اللي بيعدّل يقدر يشتغل حتى لو القراية صعبة عليه.</p>
+      <div class="menu">
+        ${tog('voice', ICON.speaker, 'الصوت يقرا كل شاشة لوحده', 'أول ما تفتح شاشة جديدة يقرالك المكتوب فيها')}
+        ${tog('names', ICON.user, 'الأسماء بالعربي', 'يكتب اسم العامل بالعربي تحت الاسم الإنجليزي')}
+        ${tog('eg', ICON.note, 'كلام مصري بسيط', 'الكلام اللي في الصفحة باللهجة المصرية')}
+        ${tog('big', ICON.search, 'خط كبير', 'يكبّر الكلام والزراير')}
+        <button class="mitem" data-act="say-test">${ICON.speaker}<span>جرّب الصوت<small>اضغط وهتسمع</small></span></button>
+      </div>
+      <div class="banner info" style="margin-top:14px">${ICON.info}<div>في كل شاشة فيه زرار 🔊 فوق. اضغطه والصفحة تقرالك المكتوب. ولو عايز تكتب اسم من غير كيبورد، اضغط المايك 🎤 اللي في كيبورد الموبايل واتكلم.</div></div>`,
+  }) });
+}
+function easyInit() {
+  easyBig();
+  const draw = Sheets.draw.bind(Sheets);
+  Sheets.draw = function (i) { draw(i); const t = this.stack[i]; if (!t) return; easyApply(t.el); if (i === this.stack.length - 1) easyAuto(t); };
+  const pop = Sheets.pop.bind(Sheets);
+  Sheets.pop = function () { try { if (EASY.voice) speechSynthesis.cancel(); } catch (e) { /* ignore */ } EASY.lastKey = ''; pop(); };
+  try { speechSynthesis.getVoices(); speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged', () => speechSynthesis.getVoices()); } catch (e) { /* no voice on this phone */ }
+  new MutationObserver(easyQueue).observe(document.body, { childList: true, subtree: true, characterData: true });
+  easyApply(document.body);
+}
+const EASY_ACT = {
+  say: () => { try { if (speechSynthesis.speaking) { speechSynthesis.cancel(); return; } } catch (e) { /* ignore */ } say(screenSpeech()); },
+  'say-test': () => say('أهلاً. أنا هقرالك الشاشة. اضغط الزرار الأخضر لما حد يدخل السكن، والزرار الأحمر لما حد يخرج.'),
+  'easy-open': () => { Sheets.closeAll(); openEasy(); },
+  'easy-tog': el => {
+    const k = el.dataset.k; EASY[k] = !EASY[k]; easySave(); easyBig(); EASY.lastKey = '';
+    if (k === 'voice' && !EASY.voice) { try { speechSynthesis.cancel(); } catch (e) { /* ignore */ } }
+    render(); Sheets.redraw();
+    if (k === 'voice' && EASY.voice) say('تمام. الصوت شغال، وهقرالك كل شاشة جديدة.');
+  },
+};
+/* =====================================================================
    10. Reading a group message (Claude, or simple rules when Claude is not available)
    ===================================================================== */
 const LABELS = [
@@ -1550,7 +2278,7 @@ function renderTop() {
   const top = $('#top');
   if (!top.dataset.built) {
     top.innerHTML = `<div class="brand"><span class="logo">${ICON.bed}</span><div class="grow"><h1>جداول السكن</h1><p class="sub" id="sub"></p></div>
-      <button class="send-btn" id="send-top" data-act="send-xlsx" aria-label="إرسال الإكسل" hidden>${ICON.send}<span>إكسل</span></button><button class="icon-btn" data-act="menu" aria-label="القائمة">${ICON.menu}</button></div>
+      <button class="send-btn" id="send-top" data-act="send-xlsx" aria-label="إرسال الإكسل" hidden>${ICON.send}<span>إكسل</span></button><button class="icon-btn" data-act="say" aria-label="اقرا الشاشة">${ICON.speaker}</button><button class="icon-btn" data-act="menu" aria-label="القائمة">${ICON.menu}</button></div>
       <div id="top-dyn"></div>
       <div class="tools" id="tools"><label class="search" for="q">${ICON.search}<input id="q" type="search" inputmode="search" placeholder="رقم وظيفي، إقامة، أو اسم" autocomplete="off"></label>
       <button class="chip" id="only-free" data-act="onlyFree" aria-pressed="false">${ICON.bed}<span>فيها مكان</span></button><button class="chip miss" id="only-miss" data-act="onlyMiss" aria-pressed="false" hidden><span class="qb">؟</span><span>ناقص <b class="num" id="miss-n"></b></span></button></div>
@@ -1632,7 +2360,7 @@ function workerRow(w, act = 'worker') {
 }
 function searchView(q) {
   const n = normAr(q), dg = idNorm(q);
-  const res = [...S.workers.values()].filter(w => !w.label && ((dg && (idNorm(w.emp).includes(dg) || idNorm(w.iq).includes(dg))) || (n.length >= 2 && normAr(displayName(w.name)).includes(n))))
+  const res = [...S.workers.values()].filter(w => !w.label && ((dg && (idNorm(w.emp).includes(dg) || idNorm(w.iq).includes(dg))) || (n.length >= 2 && normAr(displayName(w.name)).includes(n)) || easySearchHit(q, w)))
     .sort((a, b) => (b.code || 0) - (a.code || 0) || a.room - b.room).slice(0, 60);
   const rn = /^\s*\d{1,3}\s*$/.test(normDigits(q)) ? Number(normDigits(q).trim()) : null;
   const rh = rn ? ['w', 'a'].map(h => roomOf(h, rn)).filter(Boolean) : [];
@@ -1656,7 +2384,7 @@ const Sheets = {
   draw(i) {
     const { spec, el } = this.stack[i]; const v = spec.render();
     const keepScroll = el.querySelector('.sh-body')?.scrollTop || 0;
-    el.innerHTML = `<div class="sh-head ${v.tone || ''}">${spec.noBack ? '' : `<button class="icon-btn" data-act="back" aria-label="رجوع">${ICON.back}</button>`}<h2>${v.title}</h2>${v.steps || ''}</div>
+    el.innerHTML = `<div class="sh-head ${v.tone || ''}">${spec.noBack ? '' : `<button class="icon-btn" data-act="back" aria-label="رجوع">${ICON.back}</button>`}<h2>${v.title}</h2>${v.steps || ''}${spec.noBack ? '' : `<button class="icon-btn say" data-act="say" aria-label="اقرا الشاشة">${ICON.speaker}</button>`}</div>
       <div class="sh-body">${v.body}</div>${v.foot ? `<div class="sh-foot ${v.footCls || ''}">${v.foot}</div>` : ''}`;
     if (spec.keepScroll) el.querySelector('.sh-body').scrollTop = keepScroll;
     spec.after && spec.after(el);
@@ -2128,6 +2856,8 @@ function openMenu() {
       <button class="mitem" data-act="tables">${ICON.table}<span>عرض الجداول<small>جدول العمال وجدول السراير</small></span></button>
       <button class="mitem" data-act="send-xlsx">${ICON.send}<span>إرسال الإكسل<small>ملف واحد فيه الجداول الأربعة محدّثة، ترسله في القروب</small></span></button>
       <button class="mitem" data-act="sum-open">${ICON.note}<span>ملخص للقروب<small>رسالة جاهزة فيها الأعداد والغرف اللي فيها مكان</small></span></button>
+      <button class="mitem" data-act="cmp-open">${ICON.compare}<span>مقارنة مع ملف إكسل<small>ملف من برّا (مثل كشف الموظفين): مين ناقص، مين زيادة، وش المختلف</small></span></button>
+      <button class="mitem" data-act="easy-open">${ICON.speaker}<span>تسهيلات<small>صوت يقرا الشاشة، أسماء بالعربي، خط كبير</small></span></button>
       ${vacationsDue().length ? `<button class="mitem" data-act="vacDue">${ICON.plane}<span>خلصت إجازتهم (${vacationsDue().length})<small>إجازتهم انتهت وما رجعوا للسكن</small></span></button>` : ''}
       ${oldFinals().length ? `<button class="mitem" data-act="old-final">${ICON.xcircle}<span>إخلاء طرف قدام (${oldFinals().length})<small>سطور باقية في الجدول، تقدر تحذفها</small></span></button>` : ''}
       <button class="mitem" data-act="refresh">${ICON.history}<span>تحديث<small>يجيب آخر البيانات من الجدول</small></span></button>
@@ -2299,6 +3029,8 @@ const ACT = {
   'send-go': () => sendGo(),
   'sum-open': () => openSummary(),
   'sum-share': () => shareSummary(),
+  ...CMP_ACT,
+  ...EASY_ACT,
   'w-del': el => openDelete(el.dataset.id),
   'w-del-ok': el => deleteWorker(el.dataset.id),
   'old-final': () => { Sheets.closeAll(); openOldFinals(); },
@@ -2413,7 +3145,8 @@ async function boot() {
 const idle = () => document.visibilityState === 'visible' && !F && !PIN && !IMP && !SEND && !S.busy && S.ready && getPin();
 setInterval(() => { if (idle()) loadAll(true); }, 60000);
 document.addEventListener('visibilitychange', () => { if (idle()) loadAll(true); });
-window.__app = { S, rooms, totals, bedsRows, workersOf, localParse, parseBeds, extraBeds, findMatches, natSummary };
+easyInit();
+window.__app = { S, rooms, totals, bedsRows, workersOf, localParse, parseBeds, extraBeds, findMatches, natSummary, arName, eg, screenSpeech, homeSpeech, EASY, buildXlsx, StyleBook, cmpDetect, cmpRowsOf, get CMP() { return CMP; } };
 boot();
 </script>
 </body>
